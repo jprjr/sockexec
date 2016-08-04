@@ -1,0 +1,16 @@
+#!/bin/bash
+set -e
+set -x
+
+
+mkdir -p aux
+
+(
+cd aux
+
+# download and untar github-release
+mkdir -p github-release/bin
+wget -nv -N "https://github.com/aktau/github-release/releases/download/v0.6.2/linux-amd64-github-release.tar.bz2"
+tar xf linux-amd64-github-release.tar.bz2 -C github-release/bin --strip-components=3
+
+)

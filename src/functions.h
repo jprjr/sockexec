@@ -1,0 +1,21 @@
+#ifndef FUNCTIONS_H
+#define FUNCTIONS_H
+
+int process_signals(void);
+void close_connection(int, int);
+void cleanup(void);
+void kill_processes(int);
+void dump_connection(int,int);
+void dump_fds(int);
+int route_event(int);
+int update_child(int);
+int client_write(int);
+int client_read(int);
+int child_write(int, int);
+int child_read(int, int);
+int accept_client(int);
+int update_client(int);
+pid_t child_spawn3 (char const *, char const *const *, char const *const *, int *, int *, int *);
+
+#endif
+

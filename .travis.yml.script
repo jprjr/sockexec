@@ -1,0 +1,95 @@
+#!/bin/bash
+set -e
+set -x
+
+MUSL_CROSS_MAKE_RELEASE=1
+MUSL_CROSS_MAKE_SRC="https://github.com/just-containers/musl-cross-make/releases/download/v${MUSL_CROSS_MAKE_RELEASE}"
+SKAWARE_VERSION=1.18.2
+SKAWARE_SOURCE="https://github.com/just-containers/skaware/releases/download/v${SKAWARE_VERSION}"
+
+declare -A versions
+declare -A targets
+targets[x86_64-linux-musl]=amd64
+targets[arm-linux-musleabihf]=armhf
+
+mkdir -p aux
+
+(
+cd aux
+
+# download manifests
+if [[ -e "musl-cross-manifest.txt" ]]; then
+    cp -a musl-cross-manifest.txt manifest.txt
+fi
+wget -nv -N "${MUSL_CROSS_MAKE_SRC}/manifest.txt"
+cp -a manifest.txt musl-cross-manifest.txt
+rm manifest.txt
+
+if [[ -e "skaware-manifest.txt" ]]; then
+    cp -a skaware-manifest.txt manifest.txt
+fi
+wget -nv -N "${SKAWARE_SOURCE}/manifest.txt"
+cp -a manifest.txt skaware-manifest.txt
+rm manifest.txt
+
+)
+
+while read -r line; do
+    key=$(echo "${line}" | cut -d"=" -f1)
+    value=$(echo "${line}" | cut -d"=" -f2)
+    case "${key}" in
+        musl|gcc) versions[$key]=$value ;;
+    esac
+done < aux/musl-cross-manifest.txt
+
+while read -r line; do
+    key=$(echo "${line}" | cut -d"=" -f1)
+    value=$(echo "${line}" | cut -d"=" -f2)
+    case "${key}" in
+        skalibs) versions[$key]=$value ;;
+    esac
+done < aux/skaware-manifest.txt
+
+(
+cd aux
+
+# download gcc and skalibs
+for target in "${!targets[@]}"; do
+    mkdir -p gcc-${target}
+    mkdir -p skalibs-${target}
+
+    wget -N "${MUSL_CROSS_MAKE_SRC}/gcc-${versions[gcc]}-${target}.tar.gz"
+    wget -N "${SKAWARE_SOURCE}/skalibs-${versions[skalibs]}-linux-${targets[$target]}-dev.tar.gz"
+    tar xf "gcc-${versions[gcc]}-${target}.tar.gz" -C "gcc-${target}"
+    tar xf "skalibs-${versions[skalibs]}-linux-${targets[$target]}-dev.tar.gz" -C "skalibs-${target}"
+done
+)
+
+mkdir -p dist
+
+# build
+for target in "${!targets[@]}"; do
+    make clean
+    rm -rf dist/${target}
+    rm -f dist/sockxec-${target}.tar.gz
+    mkdir -p dist/${target}/bin
+    mkdir -p dist/${target}/share/doc/sockexec
+    make \
+      CC="aux/gcc-${target}/bin/${target}-gcc" \
+      LD="aux/gcc-${target}/bin/${target}-gcc" \
+      CFLAGS="-static -Iaux/skalibs-${target}/usr/include -Wall -Wextra -Werror -O3" \
+      LDFLAGS="-static -Laux/skalibs-${target}/usr/lib -lskarnet"
+    ./aux/gcc-${target}/bin/${target}-strip ./bin/sockexec
+    cp -a bin/sockexec dist/${target}/bin/sockexec
+    cp -a LICENSE dist/${target}/share/doc/sockexec
+    cp -a LICENSE.skalibs dist/${target}/share/doc/sockexec
+
+    wget -nv -O dist/${target}/share/doc/sockexec/LICENSE.musl "https://git.musl-libc.org/cgit/musl/plain/COPYRIGHT?h=v${versions[musl]}"
+
+    tar czf dist/sockexec-${target}.tar.gz -C dist/${target} .
+done
+
+releasemsg=""
+releasemsg+="Built using \`musl-${versions[musl]}\` and \`skalibs-${versions[skalibs]}\`\n"
+
+echo -e ${releasemsg} > dist/release.md

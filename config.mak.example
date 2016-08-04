@@ -1,0 +1,3 @@
+CFLAGS = -static -Wall -Werror
+LDFLAGS = -static
+
