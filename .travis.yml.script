@@ -84,7 +84,7 @@ for target in "${!targets[@]}"; do
     cp -a LICENSE dist/${target}/share/doc/sockexec
     cp -a LICENSE.skalibs dist/${target}/share/doc/sockexec
 
-    wget -nv -O dist/${target}/share/doc/sockexec/LICENSE.musl "https://git.musl-libc.org/cgit/musl/plain/COPYRIGHT?h=v${versions[musl]}"
+    wget --no-check-certificate -nv -O dist/${target}/share/doc/sockexec/LICENSE.musl "https://git.musl-libc.org/cgit/musl/plain/COPYRIGHT?h=v${versions[musl]}"
 
     tar czf dist/sockexec-${target}.tar.gz -C dist/${target} .
 done
