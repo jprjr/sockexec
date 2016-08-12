@@ -18,7 +18,7 @@ REPONAME=$(echo ${TRAVIS_REPO_SLUG} | cut -d"/" -f2)
   --repo "${REPONAME}" \
   --tag "${TRAVIS_TAG}" \
   --name "${TRAVIS_TAG}" \
-  --description "$(cat $HOME/dist/release.md)"
+  --description "$(cat dist/release.md)"
 
 # upload
 for i in dist/*.tar.gz; do
