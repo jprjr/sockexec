@@ -21,14 +21,14 @@ cd aux
 if [[ -e "musl-cross-manifest.txt" ]]; then
     cp -a musl-cross-manifest.txt manifest.txt
 fi
-wget -nv -N "${MUSL_CROSS_MAKE_SRC}/manifest.txt"
+wget -nv "${MUSL_CROSS_MAKE_SRC}/manifest.txt"
 cp -a manifest.txt musl-cross-manifest.txt
 rm manifest.txt
 
 if [[ -e "skaware-manifest.txt" ]]; then
     cp -a skaware-manifest.txt manifest.txt
 fi
-wget -nv -N "${SKAWARE_SOURCE}/manifest.txt"
+wget -nv "${SKAWARE_SOURCE}/manifest.txt"
 cp -a manifest.txt skaware-manifest.txt
 rm manifest.txt
 
@@ -74,6 +74,7 @@ for target in "${!targets[@]}"; do
     rm -f dist/sockxec-${target}.tar.gz
     mkdir -p dist/${target}/bin
     mkdir -p dist/${target}/share/doc/sockexec
+    mkdir -p dist/${target}/src/sockexec
     make \
       CC="aux/gcc-${target}/bin/${target}-gcc" \
       LD="aux/gcc-${target}/bin/${target}-gcc" \
@@ -81,8 +82,10 @@ for target in "${!targets[@]}"; do
       LDFLAGS="-static -Laux/skalibs-${target}/usr/lib -lskarnet"
     ./aux/gcc-${target}/bin/${target}-strip ./bin/sockexec
     cp -a bin/sockexec dist/${target}/bin/sockexec
-    cp -a LICENSE dist/${target}/share/doc/sockexec
-    cp -a LICENSE.skalibs dist/${target}/share/doc/sockexec
+    cp -a LICENSE dist/${target}/share/doc/sockexec/
+    cp -a LICENSE.skalibs dist/${target}/share/doc/sockexec/
+    cp -a README.md dist/${target}/share/doc/sockexec/
+    cp -r examples dist/${target}/share/doc/sockexec/
 
     wget --no-check-certificate -nv -O dist/${target}/share/doc/sockexec/LICENSE.musl "https://git.musl-libc.org/cgit/musl/plain/COPYRIGHT?h=v${versions[musl]}"
 
