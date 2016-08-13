@@ -59,7 +59,7 @@ int force;
     conn_tbl[conn_id].client_in_buffer_pos = 0;
 
     /* only thing that resets a child_pid is the SIGCHLD handler */
-    for(i=0; i<conn_tbl[conn_id].child_argc; i++)
+    for(i=0; i<genalloc_len(char **,&(conn_tbl[conn_id].child_argv)); i++)
     {
         alloc_free(genalloc_s(char **,&(conn_tbl[conn_id].child_argv))[i]);
     }
