@@ -34,16 +34,21 @@ int fd;
 
     if (conn_tbl[conn_id].child_stdin_pos == conn_tbl[conn_id].child_stdin.len)
     {
-        LOLDEBUG("child_write: closing stdin");
-        stralloc_free(&(conn_tbl[conn_id].child_stdin));
-        conn_tbl[conn_id].child_stdin_pos = -1;
+        /* take stdin out of the pollfd loop */
+        fds_tbl[conn_tbl[conn_id].child_stdin_fd].fd = -1;
 
-        int child_stdin_fd = conn_tbl[conn_id].child_stdin_fd;
+        if(conn_tbl[conn_id].child_stdin_done == 1)
+        {
+            LOLDEBUG("child_write: closing stdin");
+            stralloc_free(&(conn_tbl[conn_id].child_stdin));
+            conn_tbl[conn_id].child_stdin_pos = -1;
 
-        fds_tbl[child_stdin_fd].fd = -1;
-        fd_tbl[child_stdin_fd] = -1;
-        conn_tbl[conn_id].child_stdin_fd = -1;
-        fd_close(fd);
+            int child_stdin_fd = conn_tbl[conn_id].child_stdin_fd;
+
+            fd_tbl[child_stdin_fd] = -1;
+            conn_tbl[conn_id].child_stdin_fd = -1;
+            fd_close(fd);
+        }
     }
     return 1;
 }

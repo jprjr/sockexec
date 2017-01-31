@@ -87,9 +87,13 @@ int conn_id;
                 }
                 else {
                     /* 0-byte netstring */
-                    conn_tbl[conn_id].child_stdin_ready = 1;
+                    conn_tbl[conn_id].child_stdin_done = 1;
                 }
                 stralloc_free(&tmp);
+                if(conn_tbl[conn_id].child_pid > 0 && fds_tbl[conn_tbl[conn_id].child_stdin_fd].fd == -1) {
+                    fds_tbl[conn_tbl[conn_id].child_stdin_fd].fd = conn_tbl[conn_id].child_stdin_fd;
+                    fds_tbl[conn_tbl[conn_id].child_stdin_fd].events = IOPAUSE_WRITE;
+                }
             }
             else
             {
@@ -105,7 +109,7 @@ int conn_id;
         conn_tbl[conn_id].client_in_buffer_pos = 0;
     }
 
-    if(genalloc_len(char **,&(conn_tbl[conn_id].child_argv)) == conn_tbl[conn_id].child_argc && conn_tbl[conn_id].child_stdin_ready)
+    if(conn_tbl[conn_id].child_pid == 0 && genalloc_len(char **,&(conn_tbl[conn_id].child_argv)) == conn_tbl[conn_id].child_argc)
     {
         LOLDEBUG("update_child: spawning process");
 

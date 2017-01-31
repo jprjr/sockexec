@@ -1,7 +1,8 @@
 #include "common.h"
 
 
-void close_connection(conn_id, force)
+/* returns 1 if connection was closed, 0 otherwise */
+int close_connection(conn_id, force)
 int conn_id;
 int force;
 {
@@ -12,7 +13,7 @@ int force;
         if(force == 0)
         {
             LOLDEBUG("close_connection: child_pid > 0, returning");
-            return;
+            return 0;
         }
     }
     LOLDEBUG("closing connection");
@@ -54,7 +55,7 @@ int force;
     }
 
     conn_tbl[conn_id].child_stdin_pos = 0;
-    conn_tbl[conn_id].child_stdin_ready = 0;
+    conn_tbl[conn_id].child_stdin_done = 0;
     conn_tbl[conn_id].client_out_buffer_pos = 0;
     conn_tbl[conn_id].client_in_buffer_pos = 0;
 
@@ -76,6 +77,7 @@ int force;
     stralloc_free(&(conn_tbl[conn_id].child_stdout));
     stralloc_free(&(conn_tbl[conn_id].child_stderr));
     genalloc_free(char **,&(conn_tbl[conn_id].child_argv));
+    return 1;
 
 }
 

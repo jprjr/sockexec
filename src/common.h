@@ -30,7 +30,7 @@ struct connection_t_ {
     genalloc child_argv;
     stralloc child_stdin;
     unsigned int child_stdin_pos;
-    int child_stdin_ready;
+    int child_stdin_done;
 
     pid_t child_pid;
     int child_exit_code;
@@ -59,7 +59,7 @@ static const connection_t connection_t_zero = {
     .child_argv = GENALLOC_ZERO,
     .child_stdin = STRALLOC_ZERO,
     .child_stdin_pos = 0,
-    .child_stdin_ready = 0,
+    .child_stdin_done = 0,
     .child_pid = 0,
     .child_exit_code = -1,
     .child_exit_signal = -1,

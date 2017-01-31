@@ -1,5 +1,4 @@
 #include "common.h"
-#include "common.h"
 
 int client_write(conn_id)
 int conn_id;
@@ -13,9 +12,8 @@ int conn_id;
     LOLDEBUG("client_write: buffer len: %d",conn_tbl[conn_id].client_out_buffer.len);
     if(conn_tbl[conn_id].client_out_buffer.len <= 0)
     {
-        fds_tbl[conn_tbl[conn_id].client].fd = -1;
-        fds_tbl[conn_tbl[conn_id].child_stdout_fd].fd = conn_tbl[conn_id].child_stdout_fd;
-        fds_tbl[conn_tbl[conn_id].child_stderr_fd].fd = conn_tbl[conn_id].child_stderr_fd;
+        /* make sure everything is reading data */
+        fds_tbl[conn_tbl[conn_id].client].events = IOPAUSE_READ;
         fds_tbl[conn_tbl[conn_id].child_stdout_fd].events = IOPAUSE_READ;
         fds_tbl[conn_tbl[conn_id].child_stderr_fd].events = IOPAUSE_READ;
         return 1;
@@ -36,7 +34,12 @@ int conn_id;
     if(conn_tbl[conn_id].client_out_buffer_pos == conn_tbl[conn_id].client_out_buffer.len)
     {
         /* done sending data */
-        close_connection(conn_id,0);
+        if(!close_connection(conn_id,0)) {
+            /* connection didn't close (child pid still running) */
+            fds_tbl[conn_tbl[conn_id].client].events = IOPAUSE_READ;
+            fds_tbl[conn_tbl[conn_id].child_stdout_fd].events = IOPAUSE_READ;
+            fds_tbl[conn_tbl[conn_id].child_stderr_fd].events = IOPAUSE_READ;
+        }
         return 1;
     }
     return 1;
