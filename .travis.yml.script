@@ -2,15 +2,17 @@
 set -e
 set -x
 
-MUSL_CROSS_MAKE_RELEASE=1
+MUSL_CROSS_MAKE_RELEASE=2
 MUSL_CROSS_MAKE_SRC="https://github.com/just-containers/musl-cross-make/releases/download/v${MUSL_CROSS_MAKE_RELEASE}"
-SKAWARE_VERSION=1.18.2
+SKAWARE_VERSION=1.19.1
 SKAWARE_SOURCE="https://github.com/just-containers/skaware/releases/download/v${SKAWARE_VERSION}"
 
 declare -A versions
 declare -A targets
+targets[i486-linux-musl]=x86
 targets[x86_64-linux-musl]=amd64
 targets[arm-linux-musleabihf]=armhf
+targets[aarch64-linux-musl]=aarch64
 
 mkdir -p aux
 
@@ -71,7 +73,7 @@ mkdir -p dist
 for target in "${!targets[@]}"; do
     make clean
     rm -rf dist/${target}
-    rm -f dist/sockxec-${target}.tar.gz
+    rm -f dist/sockexec-${target}.tar.gz
     mkdir -p dist/${target}/bin
     mkdir -p dist/${target}/share/doc/sockexec
     mkdir -p dist/${target}/src/sockexec
