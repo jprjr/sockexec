@@ -67,9 +67,10 @@ All strings need to be encoded as netstrings. Some examples:
 * `1:1,3:cat,5:hello,0:,`
     * A string indicating you have one argument, the argument (`cat`), a string to send to standard input (`hello`), and the zero-byte termination string.
 
-`sockexec` won't launch any programs until it's received the 0-byte termination
-string. You're not required to send all the strings at once - you could, for
-example, send each of these strings individually.
+`sockexec` will launch the program as soon as its done reading your argument
+strings. It will continue reading strings for the program's standard input until
+it receives the 0-byte termination string. See `src/example-cat.pl` for an
+example of using `cat` as a sort of echo server.
 
 ### Output
 
