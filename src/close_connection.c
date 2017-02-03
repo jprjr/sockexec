@@ -15,6 +15,13 @@ int force;
             LOLDEBUG("close_connection: child_pid > 0, returning");
             return 0;
         }
+        if(conn_tbl[conn_id].sigsent) {
+            kill(conn_tbl[conn_id].child_pid, SIGKILL);
+        }
+        else {
+            kill(conn_tbl[conn_id].child_pid, SIGTERM);
+            conn_tbl[conn_id].sigsent = 1;
+        }
     }
     LOLDEBUG("closing connection");
 

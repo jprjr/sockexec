@@ -7,11 +7,6 @@ int conn_id;
     LOLDEBUG("entering update_child");
 
     int bytes_read = 0;
-    if(conn_tbl[conn_id].child_pid > 0)
-    {
-        LOLDEBUG("update_child: already running, returning");
-        return 1;
-    }
 
     if(conn_tbl[conn_id].child_argc == 0)
     {
@@ -108,6 +103,7 @@ int conn_id;
         stralloc_free(&(conn_tbl[conn_id].client_in_buffer));
         conn_tbl[conn_id].client_in_buffer_pos = 0;
     }
+    LOLDEBUG("update_child: child_pid: %d",conn_tbl[conn_id].child_pid);
 
     if(conn_tbl[conn_id].child_pid == 0 && genalloc_len(char **,&(conn_tbl[conn_id].child_argv)) == conn_tbl[conn_id].child_argc)
     {
@@ -115,8 +111,6 @@ int conn_id;
 
         /* char **argv;[conn_tbl[conn_id].child_argc + 1]; */
         genalloc_s(char **,&(conn_tbl[conn_id].child_argv))[conn_tbl[conn_id].child_argc] = 0;
-
-
 
         conn_tbl[conn_id].child_pid = child_spawn3(
                 (const char *)genalloc_s(char **, &(conn_tbl[conn_id].child_argv))[0],
@@ -137,19 +131,23 @@ int conn_id;
             return 0;
         }
 
-        fds_tbl[conn_tbl[conn_id].client].fd = -1;
+        if(conn_tbl[conn_id].child_stdin_pos < conn_tbl[conn_id].child_stdin.len) {
+            fds_tbl[conn_tbl[conn_id].child_stdin_fd].fd = conn_tbl[conn_id].child_stdin_fd;
+        }
+        else {
+            fds_tbl[conn_tbl[conn_id].child_stdin_fd].fd = -1;
+        }
 
         fd_tbl[conn_tbl[conn_id].child_stdin_fd] = conn_id;
         fd_tbl[conn_tbl[conn_id].child_stdout_fd] = conn_id;
         fd_tbl[conn_tbl[conn_id].child_stderr_fd] = conn_id;
 
-        fds_tbl[conn_tbl[conn_id].child_stdin_fd].fd = conn_tbl[conn_id].child_stdin_fd;
         fds_tbl[conn_tbl[conn_id].child_stdout_fd].fd = conn_tbl[conn_id].child_stdout_fd;
         fds_tbl[conn_tbl[conn_id].child_stderr_fd].fd = conn_tbl[conn_id].child_stderr_fd;
 
-        fds_tbl[conn_tbl[conn_id].child_stdin_fd].events = IOPAUSE_WRITE;
         fds_tbl[conn_tbl[conn_id].child_stdout_fd].events = IOPAUSE_READ;
         fds_tbl[conn_tbl[conn_id].child_stderr_fd].events = IOPAUSE_READ;
+        fds_tbl[conn_tbl[conn_id].child_stdin_fd].events = IOPAUSE_WRITE;
 
         fds_tbl[conn_tbl[conn_id].child_stdin_fd].revents = 0;
         fds_tbl[conn_tbl[conn_id].child_stdout_fd].revents = 0;

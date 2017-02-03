@@ -108,6 +108,11 @@ int main(int argc, char const *const *argv) {
             deadline = &_deadline;
         }
         LOLDEBUG("main: entering iopause_stamp");
+#ifdef DEBUG
+        for(i=0;i<fds_tbl_len;i++) {
+            dump_fds(i);
+        }
+#endif
         events = iopause_stamp(fds_tbl,max_fds,deadline,now);
         LOLDEBUG("main: return from iopause_stamp");
         if(events == 0)

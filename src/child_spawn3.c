@@ -69,7 +69,7 @@ pid_t child_spawn3 (char const *prog, char const *const *argv, char const *const
     }
   }
 
-  if(ndelay_on(p[0][0]) < 0)
+  if(ndelay_on(p[0][1]) < 0)
   {
       e = errno; goto errp;
   }
