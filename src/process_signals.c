@@ -14,7 +14,7 @@ int process_signals(void)
             int status = 0;
             pid_t child;
             child = wait_nohang(&status);
-            if(child > 0)
+            while(child > 0)
             {
                 while(conn_tbl[i].child_pid != child && i<conn_tbl_len)
                 {
@@ -39,6 +39,7 @@ int process_signals(void)
                     conn_tbl[i].child_exit_signal = WTERMSIG(status);
                 }
                 update_client(i);
+                child = wait_nohang(&status);
             }
             break;
         }
