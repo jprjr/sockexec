@@ -4,7 +4,7 @@
 int update_child(conn_id)
 int conn_id;
 {
-    LOLDEBUG("entering update_child");
+    LOLDEBUG("entering update_child: conn_id %d",conn_id);
 
     int bytes_read = 0;
 

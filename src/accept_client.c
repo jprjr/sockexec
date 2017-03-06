@@ -6,7 +6,7 @@ int fd;
     unsigned int i;
     tain_t c_now;
 
-    for(i=0; i <= conn_tbl_len && conn_tbl[i].client > -1 && conn_tbl[i].child_pid != 0; i++)
+    for(i=0; i <= conn_tbl_len && conn_tbl[i].client > -1; i++)
     {
 
     }

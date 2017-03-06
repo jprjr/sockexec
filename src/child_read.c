@@ -10,7 +10,7 @@ int fd;
     int bytes_read = 0;
     int is_stdout = 0;
 
-    LOLDEBUG("entering child_read, fd=%d",fd);
+    LOLDEBUG("entering child_read, conn_id=%d, fd=%d",conn_id,fd);
     errno = 0;
 
     if(conn_tbl[conn_id].child_stdout_fd > 0 && conn_tbl[conn_id].child_stdout_fd == fd)
