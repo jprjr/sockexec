@@ -12,6 +12,7 @@ int main(int argc, char const *const *argv) {
     PROG="sockexec";
 
     timeout = 60;
+    kill_timeout = 60;
     int events = 0;
     unsigned int i = 0;
     int opt = 0;
@@ -45,7 +46,6 @@ int main(int argc, char const *const *argv) {
             {
                 unsigned int t;
                 if(!uint0_scan(l.arg,&t)) dieusage() ;
-                if(t == 0) dieusage() ;
                 timeout = t;
                 break;
             }
@@ -104,7 +104,13 @@ int main(int argc, char const *const *argv) {
         tain_now(now);
         if(deadline == 0)
         {
-            tain_addsec(&_deadline,now,timeout);
+            if(timeout == 0 || kill_timeout < timeout) {
+                tain_addsec(&_deadline,now,kill_timeout);
+            }
+            else {
+                tain_addsec(&_deadline,now,timeout);
+            }
+
             deadline = &_deadline;
         }
         LOLDEBUG("main: entering iopause_stamp");

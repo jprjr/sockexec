@@ -8,6 +8,8 @@ int force;
 {
     LOLDEBUG("enter close_connection: %d (%s)",conn_id,force? "forced": "not forced");
     unsigned int i;
+    tain_t c_now;
+
     if(conn_tbl[conn_id].child_pid > 0)
     {
         if(force == 0)
@@ -15,10 +17,18 @@ int force;
             LOLDEBUG("close_connection: child_pid > 0, returning");
             return 0;
         }
-        if(conn_tbl[conn_id].sigsent) {
+        if(conn_tbl[conn_id].sigsent)
+        {
             kill(conn_tbl[conn_id].child_pid, SIGKILL);
         }
-        else {
+        else
+        {
+            tain_now(&c_now);
+            tain_addsec(&(conn_tbl[conn_id].deadline),&c_now,kill_timeout);
+            if(deadline == 0 || tain_less(&(conn_tbl[conn_id].deadline),deadline))
+            {
+                deadline = &(conn_tbl[conn_id].deadline);
+            }
             kill(conn_tbl[conn_id].child_pid, SIGTERM);
             conn_tbl[conn_id].sigsent = 1;
         }
