@@ -1,0 +1,9 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+$SIG{INT} = 'IGNORE';
+$SIG{TERM} = 'IGNORE';
+
+sleep(1000);

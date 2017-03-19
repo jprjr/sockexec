@@ -1,7 +1,7 @@
 #include "common.h"
 
 #define MAX_QUEUE 10
-#define USAGE "sockexec [-m max_connections] [-t timeout] /path/to/socket"
+#define USAGE "sockexec [-m max_connections] [-t timeout] [-k kill_timeout] /path/to/socket"
 #define dieusage() strerr_dieusage(100, USAGE)
 #define dienomem()    strerr_diefu1sys(111, "stralloc_catb")
 #define dienosocket() strerr_diefu1sys(111, "ipc_stream_nb")
@@ -12,7 +12,7 @@ int main(int argc, char const *const *argv) {
     PROG="sockexec";
 
     timeout = 60;
-    kill_timeout = 60;
+    kill_timeout = 10;
     int events = 0;
     unsigned int i = 0;
     int opt = 0;
@@ -31,7 +31,7 @@ int main(int argc, char const *const *argv) {
 
     PROG = "sockexec" ;
 
-    while( (opt = subgetopt_r(argc,argv,"m:t:",&l)) > 0 )
+    while( (opt = subgetopt_r(argc,argv,"k:m:t:",&l)) > 0 )
     {
         switch(opt)
         {
@@ -40,6 +40,14 @@ int main(int argc, char const *const *argv) {
                 unsigned int m;
                 if(!uint0_scan(l.arg,&m)) dieusage() ;
                 max_conns = m;
+                break;
+            }
+            case 'k':
+            {
+                unsigned int k;
+                if(!uint0_scan(l.arg,&k)) dieusage() ;
+                if(k == 0) dieusage() ;
+                kill_timeout = k;
                 break;
             }
             case 't':

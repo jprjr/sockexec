@@ -40,13 +40,18 @@ Variables to consider:
 
 ## Usage
 
-`sockexec [-m max connections] [-t timeout] /tmp/exec.sock`
+`sockexec [-m max connections] [-t timeout] [-k kill_timeout] /tmp/exec.sock`
 
 This starts up `sockexec`, listening for connections at `/tmp/exec.sock`
 
 By default, `sockexec` accepts a maximum of 100 connections and enforces a
-60-second timeout. This can be changed with the `-m` and `-t` flags,
+60-second max connection time. This can be changed with the `-m` and `-t` flags,
 respectively.
+
+Setting the max connection time to 0 allows processes to run indefinitely. When
+a client disconnects, `sockexec` will send a `TERM`, then wait up to
+`kill_timeout` seconds before sending a `KILL` signal (default: 10 seconds).
+This can be changed with the `-k` flag.
 
 ## Protocol
 

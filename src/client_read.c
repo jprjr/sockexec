@@ -33,7 +33,7 @@ int conn_id;
     if(bytes_read == 0)
     {
         LOLDEBUG("client_read: closing connection");
-        close_connection(conn_id,1);
+        close_connection(conn_id,1,0);
         return 1;
     }
     return 1;
