@@ -1,9 +1,10 @@
 #!/usr/bin/env perl
 
-# asks sockexec to call 'sleep' for 90 seconds
-# should receive a termsig event instead of
-# an exitcode event, assuming sockexec is
-# running with the default 60-sec timeout
+# calls a program that ignores TERM signals, waits
+# one second, then disconnects.
+#
+# After disconnecting, the program will will continue
+# running until sockexec sends the KILL signal
 
 use strict;
 use warnings;
