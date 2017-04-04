@@ -84,6 +84,7 @@ const char *sockname;
 tain_t *deadline;
 tain_t *now;
 unsigned int timeout;
+unsigned int kill_timeout;
 
 #define  fds_tbl   (genalloc_s(iopause_fd,&_fds_tbl))
 #define  fd_tbl    (genalloc_s(int,&_fd_tbl))

@@ -35,7 +35,7 @@ int conn_id;
     if(conn_tbl[conn_id].client_out_buffer_pos == conn_tbl[conn_id].client_out_buffer.len)
     {
         /* done sending data */
-        if(!close_connection(conn_id,0)) {
+        if(!close_connection(conn_id,0,0)) {
             /* connection didn't close (child pid still running) */
             fds_tbl[conn_tbl[conn_id].client].events = IOPAUSE_READ;
             fds_tbl[conn_tbl[conn_id].child_stdout_fd].events = IOPAUSE_READ;

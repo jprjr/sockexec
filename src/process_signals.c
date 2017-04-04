@@ -38,6 +38,7 @@ int process_signals(void)
                 {
                     conn_tbl[i].child_exit_signal = WTERMSIG(status);
                 }
+                conn_tbl[i].deadline = tain_zero;
                 update_client(i);
                 child = wait_nohang(&status);
             }

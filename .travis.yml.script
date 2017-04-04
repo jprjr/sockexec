@@ -2,8 +2,8 @@
 set -e
 set -x
 
-MUSL_CROSS_MAKE_RELEASE=2
-MUSL_CROSS_MAKE_SRC="https://github.com/just-containers/musl-cross-make/releases/download/v${MUSL_CROSS_MAKE_RELEASE}"
+MUSL_CROSS_MAKE_RELEASE=1
+MUSL_CROSS_MAKE_SRC="https://github.com/jprjr/musl-cross-make-static/releases/download/${MUSL_CROSS_MAKE_RELEASE}"
 SKAWARE_VERSION=1.19.1
 SKAWARE_SOURCE="https://github.com/just-containers/skaware/releases/download/v${SKAWARE_VERSION}"
 

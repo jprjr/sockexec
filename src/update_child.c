@@ -127,7 +127,7 @@ int conn_id;
 
         if(conn_tbl[conn_id].child_pid <= 0)
         {
-            close_connection(conn_id,1);
+            close_connection(conn_id,1,0);
             return 0;
         }
 

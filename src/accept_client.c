@@ -22,11 +22,13 @@ int fd;
 
     if(conn_tbl[i].client < 0) strerr_warnw1sys("ipc_accept") ;
 
-    tain_now(&c_now);
-    tain_addsec(&(conn_tbl[i].deadline),&c_now,timeout);
+    if(timeout > 0) {
+      tain_now(&c_now);
+      tain_addsec(&(conn_tbl[i].deadline),&c_now,timeout);
+    }
 
     /* update global deadline */
-    if(deadline == 0 || tain_less(&(conn_tbl[i].deadline),deadline))
+    if(deadline == 0 || (timeout > 0 && tain_less(&(conn_tbl[i].deadline),deadline)))
     {
         LOLDEBUG("accept_client: updating deadline");
         deadline = &(conn_tbl[i].deadline);

@@ -2,23 +2,36 @@
 
 
 /* returns 1 if connection was closed, 0 otherwise */
-int close_connection(conn_id, force)
+int close_connection(conn_id, force, quitting)
 int conn_id;
 int force;
+int quitting;
 {
     LOLDEBUG("enter close_connection: %d (%s)",conn_id,force? "forced": "not forced");
     unsigned int i;
+    tain_t c_now;
+
     if(conn_tbl[conn_id].child_pid > 0)
     {
-        if(force == 0)
+        if(conn_tbl[conn_id].sigsent != 0 && force == 0)
         {
-            LOLDEBUG("close_connection: child_pid > 0, returning");
+            LOLDEBUG("close_connection: child_pid > 0, no previous signal sent, returning");
             return 0;
         }
-        if(conn_tbl[conn_id].sigsent) {
+
+        if(conn_tbl[conn_id].sigsent || quitting)
+        {
             kill(conn_tbl[conn_id].child_pid, SIGKILL);
         }
-        else {
+        else
+        {
+            tain_now(&c_now);
+            tain_addsec(&(conn_tbl[conn_id].deadline),&c_now,kill_timeout);
+
+            if(deadline == 0 || tain_less(&(conn_tbl[conn_id].deadline),deadline))
+            {
+                deadline = &(conn_tbl[conn_id].deadline);
+            }
             kill(conn_tbl[conn_id].child_pid, SIGTERM);
             conn_tbl[conn_id].sigsent = 1;
         }
@@ -74,9 +87,6 @@ int force;
     conn_tbl[conn_id].child_argc = 0;
     conn_tbl[conn_id].child_exit_code = -1;
     conn_tbl[conn_id].child_exit_signal = -1;
-    conn_tbl[conn_id].sigsent = 0;
-
-    conn_tbl[conn_id].deadline = tain_zero;
 
     stralloc_free(&(conn_tbl[conn_id].client_in_buffer));
     stralloc_free(&(conn_tbl[conn_id].client_out_buffer));

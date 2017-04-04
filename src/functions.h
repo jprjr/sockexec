@@ -2,7 +2,7 @@
 #define FUNCTIONS_H
 
 int process_signals(void);
-int close_connection(int, int);
+int close_connection(int, int, int);
 void cleanup(void);
 void kill_processes(int);
 void dump_connection(int,int);
