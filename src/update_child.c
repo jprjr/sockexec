@@ -144,6 +144,7 @@ int conn_id;
 
         fds_tbl[conn_tbl[conn_id].child_stdout_fd].fd = conn_tbl[conn_id].child_stdout_fd;
         fds_tbl[conn_tbl[conn_id].child_stderr_fd].fd = conn_tbl[conn_id].child_stderr_fd;
+        fds_tbl[conn_tbl[conn_id].child_stdin_fd].fd = conn_tbl[conn_id].child_stdin_fd;
 
         fds_tbl[conn_tbl[conn_id].child_stdout_fd].events = IOPAUSE_READ;
         fds_tbl[conn_tbl[conn_id].child_stderr_fd].events = IOPAUSE_READ;
