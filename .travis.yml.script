@@ -8,24 +8,31 @@ SKAWARE_VERSION=1.19.1
 SKAWARE_SOURCE="https://github.com/just-containers/skaware/releases/download/v${SKAWARE_VERSION}"
 
 # bash3 (osx) can't iterate an associative array
-targets_list=(
-'i486-linux-musl'
-'x86_64-linux-musl'
-'arm-linux-musleabihf'
-'aarch64-linux-musl'
-'x86_64-apple-darwin'
+target_list=(
+'i486_linux_musl'
+'x86_64_linux_musl'
+'arm_linux_musleabihf'
+'aarch64_linux_musl'
+'x86_64_apple_darwin'
 )
-targets[i486-linux-musl]=x86
-targets[x86_64-linux-musl]=amd64
-targets[arm-linux-musleabihf]=armhf
-targets[aarch64-linux-musl]=aarch64
-targets[x86_64-apple-darwin]=darwin
 
-staticflags[i486-linux-musl]='-static'
-staticflags[x86_64-linux-musl]='-static'
-staticflags[arm-linux-musleabihf]='-static'
-staticflags[aarch64-linux-musl]='-static'
-staticflags[x86_64-apple-darwin]=''
+targetname__i486_linux_musl='i486-linux-musl'
+targetname__x86_64_linux_musl='x86_64-linux-musl'
+targetname__arm_linux_musleabihf='arm-linux-musleabihf'
+targetname__aarch64_linux_musl='aarch64-linux-musl'
+targetname__x86_64_apple_darwin='x86_64-apple-darwin'
+
+target__i486_linux_musl='x86'
+target__x86_64_linux_musl='amd64'
+target__arm_linux_musleabihf='armhf'
+target__aarch64_linux_musl='aarch64'
+target__x86_64_apple_darwin='darwin'
+
+staticflags__i486_linux_musl='-static'
+staticflags__x86_64_linux_musl='-static'
+staticflags__arm_linux_musleabihf='-static'
+staticflags__aarch64_linux_musl='-static'
+staticflags__x86_64_apple_darwin=''
 
 mkdir -p aux
 
@@ -33,16 +40,12 @@ mkdir -p aux
 cd aux
 
 # download manifests
-if [[ -e "musl-cross-manifest.txt" ]]; then
-    cp -a musl-cross-manifest.txt manifest.txt
-fi
+rm -f manifest.txt musl-cross-manifest.txt skaware-manifest.txt
+
 wget -nv "${MUSL_CROSS_MAKE_SRC}/manifest.txt"
 cp -a manifest.txt musl-cross-manifest.txt
 rm manifest.txt
 
-if [[ -e "skaware-manifest.txt" ]]; then
-    cp -a skaware-manifest.txt manifest.txt
-fi
 wget -nv "${SKAWARE_SOURCE}/manifest.txt"
 cp -a manifest.txt skaware-manifest.txt
 rm manifest.txt
@@ -53,7 +56,7 @@ while read -r line; do
     key=$(echo "${line}" | cut -d"=" -f1)
     value=$(echo "${line}" | cut -d"=" -f2)
     case "${key}" in
-        musl|gcc) versions[$key]=$value ;;
+        musl|gcc) printf -v "versions__${key}" "%s" "$value" ;;
     esac
 done < aux/musl-cross-manifest.txt
 
@@ -61,7 +64,7 @@ while read -r line; do
     key=$(echo "${line}" | cut -d"=" -f1)
     value=$(echo "${line}" | cut -d"=" -f2)
     case "${key}" in
-        skalibs) versions[$key]=$value ;;
+        skalibs) printf -v "versions__${key}" "%s" "$value" ;;
     esac
 done < aux/skaware-manifest.txt
 
@@ -72,15 +75,20 @@ if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
 cd aux
 
 # download gcc and skalibs
-for target in "${targets_list[@]}"; do
+for target_key in "${target_list[@]}"; do
+    target="targetname__${target_key}"
+    target="${!target}"
+    targetshort="target__${target_key}"
+    targetshort="${!targetshort}"
+
     if [[ "${target}" == *"linux"* ]] ; then
         mkdir -p gcc-${target}
         mkdir -p skalibs-${target}
 
-        wget -N "${MUSL_CROSS_MAKE_SRC}/gcc-${versions[gcc]}-${target}.tar.gz"
-        wget -N "${SKAWARE_SOURCE}/skalibs-${versions[skalibs]}-linux-${targets[$target]}-dev.tar.gz"
-        tar xf "gcc-${versions[gcc]}-${target}.tar.gz" -C "gcc-${target}"
-        tar xf "skalibs-${versions[skalibs]}-linux-${targets[$target]}-dev.tar.gz" -C "skalibs-${target}"
+        wget -N "${MUSL_CROSS_MAKE_SRC}/gcc-${versions__gcc}-${target}.tar.gz"
+        wget -N "${SKAWARE_SOURCE}/skalibs-${versions__skalibs}-linux-${targetshort}-dev.tar.gz"
+        tar xf "gcc-${versions__gcc}-${target}.tar.gz" -C "gcc-${target}"
+        tar xf "skalibs-${versions__skalibs}-linux-${targetshort}-dev.tar.gz" -C "skalibs-${target}"
     fi
 done
 )
@@ -91,10 +99,10 @@ if [[ "$TRAVIS_OS_NAME" == "osx" ]] ; then
     (
     cd aux
     skadir="$(pwd)/skalibs-x86_64-apple-darwin"
-    wget "https://skarnet.org/software/skalibs/skalibs-${versions[skalibs]}.tar.gz"
-    tar xf "skalibs-${versions[skalibs]}.tar.gz"
+    wget "https://skarnet.org/software/skalibs/skalibs-${versions__skalibs}.tar.gz"
+    tar xf "skalibs-${versions__skalibs}.tar.gz"
         (
-        cd skalibs-${versions[skalibs]}
+        cd skalibs-${versions__skalibs}
         ./configure \
           --libdir=/usr/lib \
           --enable-static \
@@ -114,7 +122,14 @@ fi
 mkdir -p dist
 
 # build
-for target in "${targets_list[@]}"; do
+for target_key in "${target_list[@]}"; do
+    target="targetname__${target_key}"
+    target="${!target}"
+    targetshort="target__${target_key}"
+    targetshort="${!targetshort}"
+    staticflags="staticflags__${target_key}"
+    staticflags="${!staticflags}"
+
     if [[ -d "aux/gcc-${target}" ]] ; then
         make clean
         rm -rf dist/${target}
@@ -125,8 +140,8 @@ for target in "${targets_list[@]}"; do
         make \
           CC="aux/gcc-${target}/bin/${target}-gcc" \
           LD="aux/gcc-${target}/bin/${target}-gcc" \
-          CFLAGS="${staticflags[$target]} -Iaux/skalibs-${target}/usr/include -Wall -Wextra -Werror -O3" \
-          LDFLAGS="${staticflags[$target]} -Laux/skalibs-${target}/usr/lib -lskarnet"
+          CFLAGS="${staticflags} -Iaux/skalibs-${target}/usr/include -Wall -Wextra -Werror -O3" \
+          LDFLAGS="${staticflags} -Laux/skalibs-${target}/usr/lib -lskarnet"
         ./aux/gcc-${target}/bin/${target}-strip ./bin/sockexec
         cp -a bin/sockexec dist/${target}/bin/sockexec
         cp -a LICENSE dist/${target}/share/doc/sockexec/
@@ -140,7 +155,7 @@ done
 
 if [[ "$TRAVIS_OS_NAME" == "linux" ]] ; then
   releasemsg=""
-  releasemsg+="Built using \`musl-${versions[musl]}\` and \`skalibs-${versions[skalibs]}\`\n"
+  releasemsg+="Built using \`musl-${versions__musl}\` and \`skalibs-${versions__skalibs}\`\n"
   
   echo -e ${releasemsg} > dist/release.md
 fi
