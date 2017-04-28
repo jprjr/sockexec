@@ -1,5 +1,9 @@
 language: c
 compiler: gcc
+os:
+  - linux
+  - osx
+
 install:
 - bash -e ${TRAVIS_BUILD_DIR}/.travis.yml.install
 script:

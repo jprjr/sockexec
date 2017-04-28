@@ -12,6 +12,7 @@ fi
 USERNAME=$(echo ${TRAVIS_REPO_SLUG} | cut -d"/" -f1)
 REPONAME=$(echo ${TRAVIS_REPO_SLUG} | cut -d"/" -f2)
 
+if [[ "$TRAVIS_OS_NAME" == "linux" ]] ; then
 # release
 ./aux/github-release/bin/github-release release \
   --user "${USERNAME}" \
@@ -19,6 +20,7 @@ REPONAME=$(echo ${TRAVIS_REPO_SLUG} | cut -d"/" -f2)
   --tag "${TRAVIS_TAG}" \
   --name "${TRAVIS_TAG}" \
   --description "$(cat dist/release.md)"
+fi
 
 # upload
 for i in dist/*.tar.gz; do

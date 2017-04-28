@@ -10,7 +10,16 @@ cd aux
 
 # download and untar github-release
 mkdir -p github-release/bin
-wget -nv -N "https://github.com/aktau/github-release/releases/download/v0.6.2/linux-amd64-github-release.tar.bz2"
-tar xf linux-amd64-github-release.tar.bz2 -C github-release/bin --strip-components=3
+if [[ "$TRAVIS_OS_NAME" == "linux" ]] ; then
+  wget -nv -N "https://github.com/aktau/github-release/releases/download/v0.6.2/linux-amd64-github-release.tar.bz2"
+  mv linux-amd64-github-release.tar.bz2 github-release.tar.bz2
+fi
+
+if [[ "$TRAVIS_OS_NAME" == "osx" ]] ; then
+  wget -nv -N "https://github.com/aktau/github-release/releases/download/v0.6.2/darwin-amd64-github-release.tar.bz2"
+  mv darwin-amd64-github-release.tar.bz2 github-release.tar.bz2
+fi
+
+tar xf github-release.tar.bz2 -C github-release/bin --strip-components=3
 
 )

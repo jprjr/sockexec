@@ -7,12 +7,25 @@ MUSL_CROSS_MAKE_SRC="https://github.com/jprjr/musl-cross-make-static/releases/do
 SKAWARE_VERSION=1.19.1
 SKAWARE_SOURCE="https://github.com/just-containers/skaware/releases/download/v${SKAWARE_VERSION}"
 
-declare -A versions
-declare -A targets
+# bash3 (osx) can't iterate an associative array
+targets_list=(
+'i486-linux-musl'
+'x86_64-linux-musl'
+'arm-linux-musleabihf'
+'aarch64-linux-musl'
+'x86_64-apple-darwin'
+)
 targets[i486-linux-musl]=x86
 targets[x86_64-linux-musl]=amd64
 targets[arm-linux-musleabihf]=armhf
 targets[aarch64-linux-musl]=aarch64
+targets[x86_64-apple-darwin]=darwin
+
+staticflags[i486-linux-musl]='-static'
+staticflags[x86_64-linux-musl]='-static'
+staticflags[arm-linux-musleabihf]='-static'
+staticflags[aarch64-linux-musl]='-static'
+staticflags[x86_64-apple-darwin]=''
 
 mkdir -p aux
 
@@ -52,47 +65,83 @@ while read -r line; do
     esac
 done < aux/skaware-manifest.txt
 
+
+if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+
 (
 cd aux
 
 # download gcc and skalibs
-for target in "${!targets[@]}"; do
-    mkdir -p gcc-${target}
-    mkdir -p skalibs-${target}
+for target in "${targets_list[@]}"; do
+    if [[ "${target}" == *"linux"* ]] ; then
+        mkdir -p gcc-${target}
+        mkdir -p skalibs-${target}
 
-    wget -N "${MUSL_CROSS_MAKE_SRC}/gcc-${versions[gcc]}-${target}.tar.gz"
-    wget -N "${SKAWARE_SOURCE}/skalibs-${versions[skalibs]}-linux-${targets[$target]}-dev.tar.gz"
-    tar xf "gcc-${versions[gcc]}-${target}.tar.gz" -C "gcc-${target}"
-    tar xf "skalibs-${versions[skalibs]}-linux-${targets[$target]}-dev.tar.gz" -C "skalibs-${target}"
+        wget -N "${MUSL_CROSS_MAKE_SRC}/gcc-${versions[gcc]}-${target}.tar.gz"
+        wget -N "${SKAWARE_SOURCE}/skalibs-${versions[skalibs]}-linux-${targets[$target]}-dev.tar.gz"
+        tar xf "gcc-${versions[gcc]}-${target}.tar.gz" -C "gcc-${target}"
+        tar xf "skalibs-${versions[skalibs]}-linux-${targets[$target]}-dev.tar.gz" -C "skalibs-${target}"
+    fi
 done
 )
+
+fi
+
+if [[ "$TRAVIS_OS_NAME" == "osx" ]] ; then
+    (
+    cd aux
+    skadir="$(pwd)/skalibs-x86_64-apple-darwin"
+    wget "https://skarnet.org/software/skalibs/skalibs-${versions[skalibs]}.tar.gz"
+    tar xf "skalibs-${versions[skalibs]}.tar.gz"
+        (
+        cd skalibs-${versions[skalibs]}
+        ./configure \
+          --libdir=/usr/lib \
+          --enable-static \
+          --disable-shared \
+          --datadir=/etc
+        make
+        make DESTDIR="${skadir}" install
+
+        )
+    )
+    mkdir -p aux/gcc-x86_64-apple-darwin/bin
+    ln -s $(which gcc) aux/gcc-x86_64-apple-darwin/bin/x86_64-apple-darwin-gcc
+    ln -s $(which strip) aux/gcc-x86_64-apple-darwin/bin/x86_64-apple-darwin-strip
+fi
+
 
 mkdir -p dist
 
 # build
-for target in "${!targets[@]}"; do
-    make clean
-    rm -rf dist/${target}
-    rm -f dist/sockexec-${target}.tar.gz
-    mkdir -p dist/${target}/bin
-    mkdir -p dist/${target}/share/doc/sockexec
-    mkdir -p dist/${target}/src/sockexec
-    make \
-      CC="aux/gcc-${target}/bin/${target}-gcc" \
-      LD="aux/gcc-${target}/bin/${target}-gcc" \
-      CFLAGS="-static -Iaux/skalibs-${target}/usr/include -Wall -Wextra -Werror -O3" \
-      LDFLAGS="-static -Laux/skalibs-${target}/usr/lib -lskarnet"
-    ./aux/gcc-${target}/bin/${target}-strip ./bin/sockexec
-    cp -a bin/sockexec dist/${target}/bin/sockexec
-    cp -a LICENSE dist/${target}/share/doc/sockexec/
-    cp -a LICENSE.skalibs dist/${target}/share/doc/sockexec/
-    cp -a README.md dist/${target}/share/doc/sockexec/
-    cp -r examples dist/${target}/share/doc/sockexec/
+for target in "${targets_list[@]}"; do
+    if [[ -d "aux/gcc-${target}" ]] ; then
+        make clean
+        rm -rf dist/${target}
+        rm -f dist/sockexec-${target}.tar.gz
+        mkdir -p dist/${target}/bin
+        mkdir -p dist/${target}/share/doc/sockexec
+        mkdir -p dist/${target}/src/sockexec
+        make \
+          CC="aux/gcc-${target}/bin/${target}-gcc" \
+          LD="aux/gcc-${target}/bin/${target}-gcc" \
+          CFLAGS="${staticflags[$target]} -Iaux/skalibs-${target}/usr/include -Wall -Wextra -Werror -O3" \
+          LDFLAGS="${staticflags[$target]} -Laux/skalibs-${target}/usr/lib -lskarnet"
+        ./aux/gcc-${target}/bin/${target}-strip ./bin/sockexec
+        cp -a bin/sockexec dist/${target}/bin/sockexec
+        cp -a LICENSE dist/${target}/share/doc/sockexec/
+        cp -a LICENSE.skalibs dist/${target}/share/doc/sockexec/
+        cp -a README.md dist/${target}/share/doc/sockexec/
+        cp -r examples dist/${target}/share/doc/sockexec/
 
-    tar czf dist/sockexec-${target}.tar.gz -C dist/${target} .
+        tar czf dist/sockexec-${target}.tar.gz -C dist/${target} .
+    fi
 done
 
-releasemsg=""
-releasemsg+="Built using \`musl-${versions[musl]}\` and \`skalibs-${versions[skalibs]}\`\n"
+if [[ "$TRAVIS_OS_NAME" == "linux" ]] ; then
+  releasemsg=""
+  releasemsg+="Built using \`musl-${versions[musl]}\` and \`skalibs-${versions[skalibs]}\`\n"
+  
+  echo -e ${releasemsg} > dist/release.md
+fi
 
-echo -e ${releasemsg} > dist/release.md
