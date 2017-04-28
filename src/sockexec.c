@@ -129,6 +129,12 @@ int main(int argc, char const *const *argv) {
 #endif
         events = iopause_stamp(fds_tbl,max_fds,deadline,now);
         LOLDEBUG("main: return from iopause_stamp");
+        if(events < 0)
+        {
+            fprintf(stderr,"Error: %s\n",strerror(errno));
+            cleanup();
+        }
+
         if(events == 0)
         {
             LOLDEBUG("main: deadline reached");
