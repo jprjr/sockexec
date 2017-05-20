@@ -60,6 +60,32 @@ accepting connections, reading data, etc.
 The `-v` flag causes `sockexec` to dump the version number and exit. Only available
 starting with version 1.2.0.
 
+## Running as a service
+
+It's pretty easy to use `systemd` - create a file at `/etc/systemd/system/sockexec.service` with
+something like the following - adjust your paths if necessary.
+
+```
+[Unit]
+description=sockexec
+After=network.target
+
+[Service]
+ExecStart=/opt/sockexec/bin/sockexec /tmp/exec.sock
+User=nobody
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Additionally, this will run fine under `s6`, `upstart`, `launchd`, `runit`, and
+`supervisor` without any real special setup - those init systems expect/prefer
+processes to run in the foreground.
+
+If your init system expects double-forking/backgrounding, PID files, etc, you *can*
+use a utility like `start-stop-daemon`, but I recommend against it. Instead,
+setup s6, runit, or supervisor as a service, and have that supervise sockexec.
+
 ## Protocol
 
 ### Input
