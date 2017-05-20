@@ -62,7 +62,10 @@ int quitting;
 
     if( (conn_tbl[conn_id].client_out_buffer_pos != conn_tbl[conn_id].client_out_buffer.len) && force == 0)
     {
-        fprintf(stderr,"Connection %d: not closing, buffered data exists\n",conn_id);
+        if(debug)
+        {
+            fprintf(stderr,"Connection %d: not closing, buffered data exists\n",conn_id);
+        }
         /* make sure client is set to write */
         fds_tbl[conn_tbl[conn_id].client].fd = conn_tbl[conn_id].client;
         fds_tbl[conn_tbl[conn_id].client].events = IOPAUSE_WRITE;
