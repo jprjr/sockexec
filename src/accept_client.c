@@ -6,7 +6,7 @@ int fd;
     unsigned int i;
     tain_t c_now;
 
-    for(i=0; i <= conn_tbl_len && conn_tbl[i].client > -1; i++)
+    for(i=0; i <= conn_tbl_len && (conn_tbl[i].client > -1 || conn_tbl[i].child_pid > 0); i++)
     {
 
     }
@@ -14,6 +14,10 @@ int fd;
     if(i > conn_tbl_len)
     {
         fprintf(stderr,"WARNING: Unable to accept client - no available connections\n");
+        int tmp_fd = ipc_accept_nb(fd,0,0,0);
+        if(tmp_fd > 0) {
+            fd_close(tmp_fd);
+        }
         return 0;
     }
 

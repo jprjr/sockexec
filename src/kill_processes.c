@@ -15,6 +15,11 @@ int force;
         has_deadline = tain_less(&tain_zero,&conn_tbl[i].deadline);
         deadline_reached = tain_lesseq(&(conn_tbl[i].deadline),now);
 
+        if(debug && has_deadline && deadline_reached)
+        {
+            fprintf(stderr,"Connection %d: deadline reached\n",i);
+        }
+
         if(force || (has_deadline && deadline_reached))
         {
             if(conn_tbl[i].child_pid > 0)
