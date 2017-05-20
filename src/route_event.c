@@ -3,14 +3,14 @@
 int route_event(fd)
 int fd;
 {
-    LOLDEBUG("entering route_event, fd = %d, revents = %d",fd,fds_tbl[fd].revents);
     int read = 0;
     int write = 0;
     int conn_id = fd_tbl[fd];
 
+
     if(conn_id < 0)
     {
-        LOLDEBUG("route_event: no connection for fd, closing fd");
+        fprintf(stderr,"WARNING: No known connection for fd %d, closing\n",fd);
         fd_close(fd);
         return 0;
     }
@@ -19,18 +19,16 @@ int fd;
 
     if(fds_tbl[fd].revents & IOPAUSE_READ)
     {
-        LOLDEBUG("route_event: IOPAUSE_READ");
         read = 1;
     }
     if(fds_tbl[fd].revents & IOPAUSE_WRITE)
     {
-        LOLDEBUG("route_event: IOPAUSE_WRITE");
         write = 1;
     }
 
     if(read == 0 && write == 0)
     {
-        LOLDEBUG("route_event: IOPAUSE_EXCEPT");
+        fprintf(stderr,"WARNING: IOPAUSE_EXCEPT, closing fd %d\n",fd);
         fd_close(fd);
         fds_tbl[fd].fd = -1;
         return 0;

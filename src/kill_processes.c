@@ -32,8 +32,11 @@ int force;
                         deadline = &(conn_tbl[i].deadline);
                     }
                 }
+                if(debug)
+                {
+                    fprintf(stderr,"Connection %d: sending %s to child process\n",i,sig_name(signal));
+                }
 
-                LOLDEBUG("kill_processes: sending %s to %d",sig_name(signal),conn_tbl[i].child_pid);
                 kill(conn_tbl[i].child_pid, signal);
                 conn_tbl[i].sigsent = 1;
             }
@@ -48,7 +51,6 @@ int force;
             {
                 if( deadline == 0 || tain_less(deadline,&(conn_tbl[i].deadline)))
                 {
-                    LOLDEBUG("kill_processes: setting new global deadline");
                     deadline = &(conn_tbl[i].deadline);
                 }
             }

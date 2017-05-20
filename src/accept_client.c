@@ -13,10 +13,15 @@ int fd;
 
     if(i > conn_tbl_len)
     {
-        LOLDEBUG("accept_client: no available connections");
+        fprintf(stderr,"WARNING: Unable to accept client - no available connections\n");
         return 0;
     }
-    LOLDEBUG("accept_client: new client: %d",i);
+
+    if(debug)
+    {
+        fprintf(stderr,"Connection %d: accepted\n",i);
+    }
+
 
     conn_tbl[i].client = ipc_accept_nb(fd,0,0,0);
 
@@ -30,7 +35,6 @@ int fd;
     /* update global deadline */
     if(deadline == 0 || (timeout > 0 && tain_less(&(conn_tbl[i].deadline),deadline)))
     {
-        LOLDEBUG("accept_client: updating deadline");
         deadline = &(conn_tbl[i].deadline);
     }
 

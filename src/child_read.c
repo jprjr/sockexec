@@ -10,7 +10,11 @@ int fd;
     int bytes_read = 0;
     int is_stdout = 0;
 
-    LOLDEBUG("entering child_read, conn_id=%d, fd=%d",conn_id,fd);
+    if(debug)
+    {
+        fprintf(stderr,"Connection %d: reading process data (fd %d)\n",conn_id,fd);
+    }
+
     errno = 0;
 
     if(conn_tbl[conn_id].child_stdout_fd > 0 && conn_tbl[conn_id].child_stdout_fd == fd)
@@ -19,7 +23,7 @@ int fd;
     }
 
     bytes_read = fd_read(fd,buffer,BUF_SIZE);
-    LOLDEBUG("child_read: %d bytes on %s",bytes_read, is_stdout? "stdout" : "stderr");
+
     if(bytes_read > 0)
     {
         if(is_stdout)
@@ -39,14 +43,17 @@ int fd;
         }
         else
         {
-            LOLDEBUG("Error: %s\n",strerror(errno));
+            fprintf(stderr,"WARNING: Error reading data (%s), closing connection %d, fd %d\n",strerror(errno),conn_id,fd);
             goto connclose;
         }
     }
     if(bytes_read == 0)
     {
+        if(debug)
+        {
+            fprintf(stderr,"Connection %d: closing child fd (%d)\n",conn_id,fd);
+        }
         connclose:
-        LOLDEBUG("child_read: closing %s", is_stdout ? "stdout" : "stderr");
         fd_close(fd);
         fds_tbl[fd].fd = -1;
         fd_tbl[fd] = -1;

@@ -3,14 +3,12 @@
 int update_client(conn_id)
 int conn_id;
 {
-    LOLDEBUG("inside update_client");
     int things_to_do = 0;
 
     if(conn_tbl[conn_id].child_stdout.len)
     {
         if(conn_tbl[conn_id].client > -1)
         {
-            LOLDEBUG("update_client: adding stdout to output buffer");
             netstring_encode(&(conn_tbl[conn_id].client_out_buffer),
               "stdout",
               6);
@@ -26,7 +24,6 @@ int conn_id;
     {
         if(conn_tbl[conn_id].client > -1)
         {
-            LOLDEBUG("update_client: adding stderr to output buffer");
             netstring_encode(&(conn_tbl[conn_id].client_out_buffer),
               "stderr",
               6);
@@ -41,7 +38,6 @@ int conn_id;
     {
         if(conn_tbl[conn_id].client > -1)
         {
-            LOLDEBUG("update_client: adding child exit code to output buffer");
             char ecode[UINT_FMT] = {0};
             int len = uint_fmt(ecode,conn_tbl[conn_id].child_exit_code);
 
@@ -60,8 +56,6 @@ int conn_id;
     {
         if(conn_tbl[conn_id].client > -1)
         {
-            LOLDEBUG("update_client: adding child exit signal to output buffer");
-
             netstring_encode(&(conn_tbl[conn_id].client_out_buffer),
               "termsig",
               7);
@@ -73,17 +67,16 @@ int conn_id;
         conn_tbl[conn_id].child_exit_signal = -1;
     }
 
-
     if(things_to_do)
     {
-        LOLDEBUG("update_client: setting client_fd to IOPAUSE_WRITE");
+        /* there's stuff to send */
         fds_tbl[conn_tbl[conn_id].client].fd = conn_tbl[conn_id].client;
         fds_tbl[conn_tbl[conn_id].client].events = IOPAUSE_WRITE;
     }
-#ifdef DEBUG
     else {
-        LOLDEBUG("end_client: exit, no action");
+        /* the child closed stdout/stderr - see if connection can be closed */
+        close_connection(conn_id,0,0);
     }
-#endif
+
     return 1;
 }

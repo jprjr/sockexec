@@ -4,13 +4,11 @@
 int update_child(conn_id)
 int conn_id;
 {
-    LOLDEBUG("entering update_child: conn_id %d",conn_id);
 
     int bytes_read = 0;
 
     if(conn_tbl[conn_id].child_argc == 0)
     {
-        LOLDEBUG("update_child: getting argument count");
         stralloc tmp = STRALLOC_ZERO;
         bytes_read = netstring_decode(
           &tmp,
@@ -25,7 +23,10 @@ int conn_id;
             {
                 return -1;
             }
-            LOLDEBUG("update_child: argc = %d",conn_tbl[conn_id].child_argc);
+            if(debug)
+            {
+                fprintf(stderr,"Connection %d: reading %d arguments\n",conn_id,conn_tbl[conn_id].child_argc);
+            }
             genalloc_ready(char **,&(conn_tbl[conn_id].child_argv),conn_tbl[conn_id].child_argc + 1);
         }
         stralloc_free(&tmp);
@@ -37,7 +38,6 @@ int conn_id;
         conn_tbl[conn_id].child_argc > genalloc_len( char **,&(conn_tbl[conn_id].child_argv))
     )
     {
-        LOLDEBUG("update_child: attempting to grab argument");
         stralloc arg = STRALLOC_ZERO;
         bytes_read = netstring_decode(
             &arg,
@@ -55,19 +55,18 @@ int conn_id;
         }
     }
 
-#ifdef DEBUG
+if(debug)
 {
     unsigned int i;
+    fprintf(stderr,"Connection %d: arguments ",conn_id);
     for(i=0; i<genalloc_len(char**, &(conn_tbl[conn_id].child_argv)); i++) {
-        LOLDEBUG("argv[%d]: %s",i,genalloc_s(char **,&(conn_tbl[conn_id].child_argv))[i]);
+        fprintf(stderr,"'%s' ",genalloc_s(char *,&(conn_tbl[conn_id].child_argv))[i]);
     }
+    fprintf(stderr,"\n");
 }
-#endif
 
     if(conn_tbl[conn_id].child_argc > 0 && genalloc_len(char **,&(conn_tbl[conn_id].child_argv)) == conn_tbl[conn_id].child_argc) {
         /* done reading args, try reading stdin */
-        LOLDEBUG("update_child: attempting to grab stdin");
-        LOLDEBUG("update_child: cur stdin pos: %d",conn_tbl[conn_id].child_stdin_pos);
         while(conn_tbl[conn_id].client_in_buffer_pos < conn_tbl[conn_id].client_in_buffer.len) {
             stralloc tmp = STRALLOC_ZERO;
             bytes_read = netstring_decode(
@@ -76,7 +75,11 @@ int conn_id;
               conn_tbl[conn_id].client_in_buffer.len);
             if(bytes_read > 0) {
                 conn_tbl[conn_id].client_in_buffer_pos += bytes_read;
-                LOLDEBUG("update_child: grabbed stdin, length %d",tmp.len);
+                if(debug)
+                {
+                    fprintf(stderr,"Connection %d: read %d bytes of stdin\n",conn_id,tmp.len);
+                }
+
                 if(tmp.len > 0) {
                     stralloc_cat(&(conn_tbl[conn_id].child_stdin), &tmp);
                 }
@@ -103,11 +106,13 @@ int conn_id;
         stralloc_free(&(conn_tbl[conn_id].client_in_buffer));
         conn_tbl[conn_id].client_in_buffer_pos = 0;
     }
-    LOLDEBUG("update_child: child_pid: %d",conn_tbl[conn_id].child_pid);
 
     if(conn_tbl[conn_id].child_pid == 0 && genalloc_len(char **,&(conn_tbl[conn_id].child_argv)) == conn_tbl[conn_id].child_argc)
     {
-        LOLDEBUG("update_child: spawning process");
+        if(debug)
+        {
+            fprintf(stderr,"Connection %d: attempting to spawn process\n",conn_id);
+        }
 
         /* char **argv;[conn_tbl[conn_id].child_argc + 1]; */
         genalloc_s(char **,&(conn_tbl[conn_id].child_argv))[conn_tbl[conn_id].child_argc] = 0;
@@ -120,17 +125,33 @@ int conn_id;
                 &(conn_tbl[conn_id].child_stdout_fd),
                 &(conn_tbl[conn_id].child_stderr_fd));
 
-        LOLDEBUG("update_child: pid %d",conn_tbl[conn_id].child_pid);
-        LOLDEBUG("update_child: stdin_fd %d",conn_tbl[conn_id].child_stdin_fd);
-        LOLDEBUG("update_child: stdout_fd %d",conn_tbl[conn_id].child_stdout_fd);
-        LOLDEBUG("update_child: stderr_fd %d",conn_tbl[conn_id].child_stderr_fd);
-
         if(conn_tbl[conn_id].child_pid <= 0)
         {
+            fprintf(stderr,"WARNING: failed to spawn child process (");
+            {
+                unsigned int i;
+                for(i=0; i<genalloc_len(char**, &(conn_tbl[conn_id].child_argv)); i++) {
+                    if(i > 0) {
+                        fprintf(stderr," ");
+                    }
+                    fprintf(stderr,"'%s'",genalloc_s(char *,&(conn_tbl[conn_id].child_argv))[i]);
+                }
+                fprintf(stderr,")\n");
+            }
             close_connection(conn_id,1,0);
             return 0;
         }
 
+        if(debug)
+        {
+            fprintf(stderr,"Connection %d: process spawned. PID: %d, stdin: %d, stdout: %d, stderr: %d\n",
+              conn_id,
+              conn_tbl[conn_id].child_pid,
+              conn_tbl[conn_id].child_stdin_fd,
+              conn_tbl[conn_id].child_stdout_fd,
+              conn_tbl[conn_id].child_stderr_fd);
+        }
+          
         if(conn_tbl[conn_id].child_stdin_pos < conn_tbl[conn_id].child_stdin.len) {
             fds_tbl[conn_tbl[conn_id].child_stdin_fd].fd = conn_tbl[conn_id].child_stdin_fd;
         }

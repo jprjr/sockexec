@@ -7,20 +7,39 @@ int conn_id;
 int force;
 int quitting;
 {
-    LOLDEBUG("enter close_connection: %d (%s)",conn_id,force? "forced": "not forced");
+    if(debug)
+    {
+        fprintf(stderr,"Connection %d: attempting to close, %s\n",conn_id, force ? "forced": "not forced");
+    }
     unsigned int i;
     tain_t c_now;
+
+    if(conn_tbl[conn_id].child_stdout_fd > 0 || conn_tbl[conn_id].child_stderr_fd > 0)
+    {
+        if(debug)
+        {
+            fprintf(stderr,"Connection %d: not closing, child outputs are still open\n",conn_id);
+        }
+        return 0;
+    }
 
     if(conn_tbl[conn_id].child_pid > 0)
     {
         if(conn_tbl[conn_id].sigsent != 0 && force == 0)
         {
-            LOLDEBUG("close_connection: child_pid > 0, no previous signal sent, returning");
+            if(debug)
+            {
+                fprintf(stderr,"Connection %d: not closing, process still running\n",conn_id);
+            }
             return 0;
         }
 
         if(conn_tbl[conn_id].sigsent || quitting)
         {
+            if(debug)
+            {
+                fprintf(stderr,"Connection %d: sending SIGKILL\n",conn_id);
+            }
             kill(conn_tbl[conn_id].child_pid, SIGKILL);
         }
         else
@@ -32,15 +51,18 @@ int quitting;
             {
                 deadline = &(conn_tbl[conn_id].deadline);
             }
+            if(debug)
+            {
+                fprintf(stderr,"Connection %d: sending SIGTERM\n",conn_id);
+            }
             kill(conn_tbl[conn_id].child_pid, SIGTERM);
             conn_tbl[conn_id].sigsent = 1;
         }
     }
-    LOLDEBUG("closing connection");
-
-#ifdef DEBUG
-    dump_connection(conn_id,0);
-#endif
+    if(debug)
+    {
+        fprintf(stderr,"Connection %d: forcibly closing\n",conn_id);
+    }
 
     if(conn_tbl[conn_id].client > -1)
     {

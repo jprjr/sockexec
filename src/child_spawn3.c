@@ -34,22 +34,8 @@
 
 #endif
 
-#ifdef DEBUG
-#include <skalibs/lolstdio.h>
-#endif
-
-
 pid_t child_spawn3 (char const *prog, char const *const *argv, char const *const *envp, int *child_stdin, int *child_stdout, int *child_stderr)
 {
-#ifdef DEBUG
-    LOLDEBUG("child_spawn3: prog = %s",prog);
-    {
-        int i;
-        for(i=0; argv[i] != 0; i++) {
-            LOLDEBUG("child_spawn3: argv[%d]: '%s'\n",i,argv[i]);
-        }
-    }
-#endif
 #ifdef SKALIBS_HASPOSIXSPAWN
   posix_spawn_file_actions_t actions ;
   posix_spawnattr_t attr ;

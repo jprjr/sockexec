@@ -7,11 +7,13 @@ int conn_id;
     char buffer[BUF_SIZE] = { 0 };
     int bytes_read = 0;
 
-    LOLDEBUG("entering client_read");
+    if(debug)
+    {
+        fprintf(stderr,"Connection %d: reading client data\n",conn_id);
+    }
 
     while( (bytes_read = ipc_recv(conn_tbl[conn_id].client,buffer,BUF_SIZE,0)) > 0 )
     {
-        LOLDEBUG("client_read: read %d bytes",bytes_read);
         stralloc_catb(&(conn_tbl[conn_id].client_in_buffer),buffer,bytes_read);
     }
 
@@ -25,14 +27,16 @@ int conn_id;
         }
         else
         {
-            printf("Error: %s\n",strerror(errno));
+            fprintf(stderr,"ERROR: Connection %d: unable to read from client (%s)\n",conn_id,strerror(errno));
             return 0;
         }
     }
 
     if(bytes_read == 0)
     {
-        LOLDEBUG("client_read: closing connection");
+        if(debug) {
+            fprintf(stderr,"Connection %d: client sent 0 bytes, closing connection\n",conn_id);
+        }
         close_connection(conn_id,1,0);
         return 1;
     }

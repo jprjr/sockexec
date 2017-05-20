@@ -8,26 +8,24 @@ int fd;
 {
     int bytes_sent = 0;
 
-    LOLDEBUG("entering child_write");
-    LOLDEBUG("child_write: stdin_pos: %d, stdin_len: %d",
-      conn_tbl[conn_id].child_stdin_pos,
-      conn_tbl[conn_id].child_stdin.len);
+    if(debug)
+    {
+        fprintf(stderr,"Connection %d: writing data to child stdin\n",conn_id);
+    }
 
     if(conn_tbl[conn_id].child_stdin_pos < conn_tbl[conn_id].child_stdin.len)
     {
-        LOLDEBUG("child_write: writing data to child stdin");
         bytes_sent = fd_write(
           conn_tbl[conn_id].child_stdin_fd,
           conn_tbl[conn_id].child_stdin.s + conn_tbl[conn_id].child_stdin_pos,
           conn_tbl[conn_id].child_stdin.len - conn_tbl[conn_id].child_stdin_pos);
-        LOLDEBUG("child_write: wrote %d bytes",bytes_sent);
         if(bytes_sent > 0)
         {
              conn_tbl[conn_id].child_stdin_pos += bytes_sent;
         }
         if(bytes_sent < 0 )
         {
-            LOLDEBUG("child_write: error %d (%s)",errno,strerror(errno));
+            fprintf(stderr,"WARNING: Connection %d: writing data to child failed (%s)\n",conn_id,strerror(errno));
             return 0;
         }
     }
@@ -39,7 +37,10 @@ int fd;
 
         if(conn_tbl[conn_id].child_stdin_done == 1)
         {
-            LOLDEBUG("child_write: closing stdin");
+            if(debug)
+            {
+                fprintf(stderr,"Connection %d: closing child stdin (fd %d)\n",conn_id,fd);
+            }
             stralloc_free(&(conn_tbl[conn_id].child_stdin));
             conn_tbl[conn_id].child_stdin_pos = -1;
 
