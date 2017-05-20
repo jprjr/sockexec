@@ -47,3 +47,48 @@ sub netargs_encode {
     my $argc = @args;
     return sprintf("%d:%s,%s",length($argc),$argc,join('',map{netstring_encode($_)} @args));
 }
+
+sub netstring_decode {
+    my $string = shift;
+    if(not defined($string) or length($string) ==0) {
+        return undef;
+    }
+
+    my $i = 0;
+    my $ret = [];
+    while($i < length($string)) {
+        my $lengthstring = '';
+        while(substr($string,$i,1) ne ':') {
+            $lengthstring .= substr($string,$i,1);
+            $i++;
+        }
+        if(substr($string,$i+$lengthstring+1,1) ne ',') {
+            return undef;
+        }
+        push(@$ret, substr($string,$i+1,$lengthstring));
+        $i = $i + $lengthstring + 2;
+    }
+
+    return $ret;
+}
+
+sub sockexec_decode {
+    my $string = shift;
+    my $ret = {};
+
+    my $t = undef;
+    my $decoded = netstring_decode($string);
+    foreach my $s (@$decoded) {
+        if(not defined($t)) {
+            $t = $s;
+        }
+        else {
+            if(not exists($ret->{$t})) {
+                $ret->{$t} = '';
+            }
+            $ret->{$t} .= $s;
+            $t = undef;
+        }
+    }
+    return $ret;
+}

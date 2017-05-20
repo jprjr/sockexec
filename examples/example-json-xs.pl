@@ -9,6 +9,7 @@ use strict;
 use warnings;
 
 use Socket;
+use Data::Dumper;
 
 my $socket_path = $ARGV[0];
 my $buffer;
@@ -29,10 +30,6 @@ send($sock,netargs_encode('json_xs'),0);
 
 sleep(1);
 
-#recv($sock,$buffer,$length,0);
-#print("=== buffer === \n");
-#print("$buffer\n");
-
 print("Sending data\n");
 send($sock,netstring_encode('{"one":1,"two":2}'),0);
 
@@ -49,8 +46,7 @@ while(recv($sock,$buffer,$length,0))
 {
     $data .= $buffer;
 }
-print("=== data ===\n");
-print("$data\n");
+print Dumper sockexec_decode($data);
 #
 #send($sock,netstring_encode('{"three";3,"four":4}'),0);
 #while(recv($sock,$buffer,$length,0))
@@ -82,4 +78,49 @@ sub netargs_encode {
     my @args = @_;
     my $argc = @args;
     return sprintf("%d:%s,%s",length($argc),$argc,join('',map{netstring_encode($_)} @args));
+}
+
+sub netstring_decode {
+    my $string = shift;
+    if(not defined($string) or length($string) ==0) {
+        return undef;
+    }
+
+    my $i = 0;
+    my $ret = [];
+    while($i < length($string)) {
+        my $lengthstring = '';
+        while(substr($string,$i,1) ne ':') {
+            $lengthstring .= substr($string,$i,1);
+            $i++;
+        }
+        if(substr($string,$i+$lengthstring+1,1) ne ',') {
+            return undef;
+        }
+        push(@$ret, substr($string,$i+1,$lengthstring));
+        $i = $i + $lengthstring + 2;
+    }
+
+    return $ret;
+}
+
+sub sockexec_decode {
+    my $string = shift;
+    my $ret = {};
+
+    my $t = undef;
+    my $decoded = netstring_decode($string);
+    foreach my $s (@$decoded) {
+        if(not defined($t)) {
+            $t = $s;
+        }
+        else {
+            if(not exists($ret->{$t})) {
+                $ret->{$t} = '';
+            }
+            $ret->{$t} .= $s;
+            $t = undef;
+        }
+    }
+    return $ret;
 }

@@ -34,6 +34,8 @@ int conn_id;
 
     if(conn_tbl[conn_id].client_out_buffer_pos == conn_tbl[conn_id].client_out_buffer.len)
     {
+        conn_tbl[conn_id].client_out_buffer_pos = 0;
+        stralloc_free(&(conn_tbl[conn_id].client_out_buffer));
         /* done sending data */
         if(!close_connection(conn_id,0,0)) {
             /* connection didn't close (child pid still running) */
