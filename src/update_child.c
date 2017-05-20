@@ -57,15 +57,6 @@ int conn_id;
 
 
     if(conn_tbl[conn_id].child_argc > 0 && genalloc_len(char **,&(conn_tbl[conn_id].child_argv)) == conn_tbl[conn_id].child_argc) {
-        if(debug)
-        {
-            unsigned int i;
-            fprintf(stderr,"Connection %d: arguments ",conn_id);
-            for(i=0; i<genalloc_len(char**, &(conn_tbl[conn_id].child_argv)); i++) {
-                fprintf(stderr,"'%s' ",genalloc_s(char *,&(conn_tbl[conn_id].child_argv))[i]);
-            }
-            fprintf(stderr,"\n");
-        }
         /* done reading args, try reading stdin */
         while(conn_tbl[conn_id].client_in_buffer_pos < conn_tbl[conn_id].client_in_buffer.len) {
             stralloc tmp = STRALLOC_ZERO;
@@ -112,9 +103,14 @@ int conn_id;
         if(debug)
         {
             fprintf(stderr,"Connection %d: attempting to spawn process\n",conn_id);
+            unsigned int i;
+            fprintf(stderr,"Connection %d: arguments ",conn_id);
+            for(i=0; i<genalloc_len(char**, &(conn_tbl[conn_id].child_argv)); i++) {
+                fprintf(stderr,"'%s' ",genalloc_s(char *,&(conn_tbl[conn_id].child_argv))[i]);
+            }
+            fprintf(stderr,"\n");
         }
 
-        /* char **argv;[conn_tbl[conn_id].child_argc + 1]; */
         genalloc_s(char **,&(conn_tbl[conn_id].child_argv))[conn_tbl[conn_id].child_argc] = 0;
 
         conn_tbl[conn_id].child_pid = child_spawn3(
