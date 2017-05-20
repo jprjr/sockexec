@@ -62,8 +62,8 @@ starting with version 1.2.0.
 
 ## Running as a service
 
-It's pretty easy to use `systemd` - create a file at `/etc/systemd/system/sockexec.service` with
-something like the following - adjust your paths if necessary.
+If your distro is using `systemd`, create a file at `/etc/systemd/system/sockexec.service` with
+something like the following - adjust your paths as necessary.
 
 ```
 [Unit]
