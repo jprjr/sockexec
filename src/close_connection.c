@@ -14,7 +14,7 @@ int quitting;
     unsigned int i;
     tain_t c_now;
 
-    if(conn_tbl[conn_id].child_stdout_fd > 0 || conn_tbl[conn_id].child_stderr_fd > 0)
+    if( (conn_tbl[conn_id].child_stdout_fd > 0 || conn_tbl[conn_id].child_stderr_fd > 0) && force == 0)
     {
         if(debug)
         {
@@ -59,9 +59,19 @@ int quitting;
             conn_tbl[conn_id].sigsent = 1;
         }
     }
+
+    if( (conn_tbl[conn_id].client_out_buffer_pos != conn_tbl[conn_id].client_out_buffer.len) && force == 0)
+    {
+        fprintf(stderr,"Connection %d: not closing, buffered data exists\n",conn_id);
+        /* make sure client is set to write */
+        fds_tbl[conn_tbl[conn_id].client].fd = conn_tbl[conn_id].client;
+        fds_tbl[conn_tbl[conn_id].client].events = IOPAUSE_WRITE;
+        return 0;
+    }
+
     if(debug)
     {
-        fprintf(stderr,"Connection %d: forcibly closing\n",conn_id);
+        fprintf(stderr,"Connection %d: closing\n",conn_id);
     }
 
     if(conn_tbl[conn_id].client > -1)

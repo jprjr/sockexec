@@ -1,8 +1,7 @@
 #!/usr/bin/env perl
 
-# calls a program that ignores TERM signals
-# be sure to run sockexec with a shorter timeout
-# value for this test
+# calls a program that ignores TERM signals, waits
+# one second, then disconnects.
 #
 # After disconnecting, the program will will continue
 # running until sockexec sends the KILL signal
@@ -34,11 +33,7 @@ connect($sock, sockaddr_un($socket_path)) or die "connect: $!";
 send($sock,netargs_encode($ignore_term),0);
 send($sock,netstring_encode(""),0);
 
-print("Getting data\n");
-recv($sock,$buffer,$length,0);
-
-print("=== data ===\n");
-print("$buffer\n");
+sleep(1);
 
 exit(0);
 

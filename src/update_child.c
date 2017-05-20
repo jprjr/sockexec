@@ -51,19 +51,19 @@ int conn_id;
         }
         else
         {
+            if(debug)
+            {
+                unsigned int i;
+                fprintf(stderr,"Connection %d: arguments ",conn_id);
+                for(i=0; i<genalloc_len(char**, &(conn_tbl[conn_id].child_argv)); i++) {
+                    fprintf(stderr,"'%s' ",genalloc_s(char *,&(conn_tbl[conn_id].child_argv))[i]);
+                }
+                fprintf(stderr,"\n");
+            }
             break;
         }
     }
 
-if(debug)
-{
-    unsigned int i;
-    fprintf(stderr,"Connection %d: arguments ",conn_id);
-    for(i=0; i<genalloc_len(char**, &(conn_tbl[conn_id].child_argv)); i++) {
-        fprintf(stderr,"'%s' ",genalloc_s(char *,&(conn_tbl[conn_id].child_argv))[i]);
-    }
-    fprintf(stderr,"\n");
-}
 
     if(conn_tbl[conn_id].child_argc > 0 && genalloc_len(char **,&(conn_tbl[conn_id].child_argv)) == conn_tbl[conn_id].child_argc) {
         /* done reading args, try reading stdin */
