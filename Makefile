@@ -9,9 +9,9 @@ BINDIR = $(PREFIX)/bin
 
 -include config.mak
 
-.PHONY: clean install
+.PHONY: clean install all test
 
-SRCS = $(wildcard src/*.c)
+SRCS != ls src/*.c
 
 TARGET = sockexec
 
@@ -20,10 +20,13 @@ all: $(TARGET)
 install: $(TARGET)
 	install -s -D -m 0755 bin/$(TARGET) $(DESTDIR)$(BINDIR)/$(TARGET)
 
-$(TARGET): $(SRCS)
+$(TARGET): bin/$(TARGET)
+
+bin/$(TARGET): $(SRCS)
 	mkdir -p bin
 	$(CC) $(CFLAGS) -o bin/$(TARGET) $(SRCS) $(LDFLAGS)
 
 clean:
 	rm -f bin/$(TARGET)
 
+test: $(TARGET)
