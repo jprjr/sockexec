@@ -22,7 +22,7 @@ Just download a statically-compiled binary from the releases page.
 `sockexec` requires the `skarnet` library from [skalibs](http://skarnet.org/software/skalibs/)
 
 On most systems, simply typing `make` and `make install` will compile and
-install `sockexec`.
+install `sockexec`. You need either BSD Make, or GNU Make >= 4.0.
 
 To change any parameters, you can either override `make` variables, eg
 `make CFLAGS="-I/path/to/something"`, or setup a `config.mak` file with
