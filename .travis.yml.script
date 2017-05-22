@@ -6,6 +6,8 @@ MUSL_CROSS_MAKE_RELEASE=1
 MUSL_CROSS_MAKE_SRC="https://github.com/jprjr/musl-cross-make-static/releases/download/${MUSL_CROSS_MAKE_RELEASE}"
 SKAWARE_VERSION=1.19.1
 SKAWARE_SOURCE="https://github.com/just-containers/skaware/releases/download/v${SKAWARE_VERSION}"
+MAKE_VERSION=4.2
+AUXDIR=$(pwd)/aux
 
 # bash3 (osx) can't iterate an associative array
 target_list=(
@@ -49,6 +51,13 @@ rm manifest.txt
 wget -nv "${SKAWARE_SOURCE}/manifest.txt"
 cp -a manifest.txt skaware-manifest.txt
 rm manifest.txt
+
+wget -nv "https://ftp.gnu.org/gnu/make/make-${MAKE_VERSION}.tar.bz2"
+tar xf make-${MAKE_VERSION}.tar.bz2
+cd make-${MAKE_VERSION}
+./configure --prefix=
+make
+make DESTDIR="${AUXDIR}" install
 
 )
 
@@ -109,8 +118,8 @@ if [[ "$TRAVIS_OS_NAME" == "osx" ]] ; then
           --disable-shared \
           --datadir=/etc \
           --enable-iopause-select
-        make
-        make DESTDIR="${skadir}" install
+        ${AUXDIR}/bin/make
+        ${AUXDIR}/bin/make DESTDIR="${skadir}" install
 
         )
     )
@@ -132,18 +141,18 @@ for target_key in "${target_list[@]}"; do
     staticflags="${!staticflags}"
 
     if [[ -d "aux/gcc-${target}" ]] ; then
-        make clean
+        ${AUXDIR}/bin/make clean
         rm -rf dist/${target}
         rm -f dist/sockexec-${target}.tar.gz
         mkdir -p dist/${target}/bin
         mkdir -p dist/${target}/share/doc/sockexec
         mkdir -p dist/${target}/src/sockexec
-        make \
+        ${AUXDIR}/bin/make \
           CC="aux/gcc-${target}/bin/${target}-gcc" \
           LD="aux/gcc-${target}/bin/${target}-gcc" \
           CFLAGS="${staticflags} -Iaux/skalibs-${target}/usr/include -Wall -Wextra -Werror -O3" \
           LDFLAGS="${staticflags} -Laux/skalibs-${target}/usr/lib -lskarnet"
-        ./aux/gcc-${target}/bin/${target}-strip ./bin/sockexec
+        ${AUXDIR}/gcc-${target}/bin/${target}-strip ./bin/sockexec
         cp -a bin/sockexec dist/${target}/bin/sockexec
         cp -a LICENSE dist/${target}/share/doc/sockexec/
         cp -a LICENSE.skalibs dist/${target}/share/doc/sockexec/
