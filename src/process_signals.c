@@ -9,7 +9,11 @@ int process_signals(void)
     }
     switch (code) {
         case SIGTERM:
-        case SIGINT: cleanup();
+        case SIGINT:
+        {
+            cleanup();
+            break;
+        }
         case SIGCHLD:
         {
             unsigned int i = 0;

@@ -19,7 +19,7 @@
 #include <skalibs/bytestr.h>
 #include <skalibs/env.h>
 #include <skalibs/djbunix.h>
-#include <skalibs/uint.h>
+#include <skalibs/types.h>
 
 #ifdef SKALIBS_HASPOSIXSPAWN
 

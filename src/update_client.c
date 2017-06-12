@@ -61,7 +61,7 @@ int conn_id;
               7);
             netstring_encode(&(conn_tbl[conn_id].client_out_buffer),
               sig_name(conn_tbl[conn_id].child_exit_signal),
-              str_len(sig_name(conn_tbl[conn_id].child_exit_signal)));
+              strlen(sig_name(conn_tbl[conn_id].child_exit_signal)));
             things_to_do = 1;
         }
         conn_tbl[conn_id].child_exit_signal = -1;

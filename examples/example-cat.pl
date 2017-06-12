@@ -1,19 +1,14 @@
 #!/usr/bin/env perl
 
-# asks sockexec to call 'sleep' for 90 seconds
-# should receive a termsig event instead of
-# an exitcode event, assuming sockexec is
-# running with the default 60-sec timeout
-
 use strict;
 use warnings;
 
 use Socket;
-use Data::Dumper;
 
 my $socket_path = $ARGV[0];
 my $buffer;
 my $length = 4096;
+
 
 my $data;
 
@@ -42,7 +37,9 @@ while(recv($sock,$buffer,$length,0))
 
 my $res = sockexec_decode($data);
 
-if($res->{'stdout'} eq 'first linesecond line' and
+if(exists($res->{'stdout'}) and
+   exists($res->{'exitcode'}) and
+   $res->{'stdout'} eq 'first linesecond line' and
    $res->{'exitcode'} eq '0') {
     exit(0);
 }

@@ -25,7 +25,7 @@ int quitting;
 
     if(conn_tbl[conn_id].child_pid > 0)
     {
-        if(conn_tbl[conn_id].sigsent != 0 && force == 0)
+        if(conn_tbl[conn_id].sigsent == 0 && force == 0)
         {
             if(debug)
             {
@@ -34,15 +34,18 @@ int quitting;
             return 0;
         }
 
-        if(conn_tbl[conn_id].sigsent || quitting)
+        if(conn_tbl[conn_id].sigsent == 1 || quitting)
         {
             if(debug)
             {
                 fprintf(stderr,"Connection %d: sending SIGKILL\n",conn_id);
             }
             kill(conn_tbl[conn_id].child_pid, SIGKILL);
+            conn_tbl[conn_id].sigsent = 2;
+            return 0;
         }
-        else
+
+        if(conn_tbl[conn_id].sigsent == 0)
         {
             tain_now(&c_now);
             tain_addsec(&(conn_tbl[conn_id].deadline),&c_now,kill_timeout);
@@ -57,6 +60,7 @@ int quitting;
             }
             kill(conn_tbl[conn_id].child_pid, SIGTERM);
             conn_tbl[conn_id].sigsent = 1;
+            return 0;
         }
     }
 

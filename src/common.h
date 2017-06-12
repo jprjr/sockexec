@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <unistd.h>
 #include <skalibs/allreadwrite.h>
 #include <skalibs/webipc.h>
 #include <skalibs/strerr2.h>
@@ -12,7 +13,7 @@
 #include <skalibs/iopause.h>
 #include <skalibs/selfpipe.h>
 #include <skalibs/sgetopt.h>
-#include <skalibs/uint.h>
+#include <skalibs/types.h>
 #include <skalibs/netstring.h>
 #include <skalibs/sig.h>
 #include <skalibs/lolstdio.h>

@@ -3,9 +3,6 @@
 # calls a program that ignores TERM signals
 # be sure to run sockexec with a shorter timeout
 # value for this test
-#
-# After disconnecting, the program will will continue
-# running until sockexec sends the KILL signal
 
 use strict;
 use warnings;
@@ -13,6 +10,7 @@ use warnings;
 use Socket;
 use Cwd 'abs_path';
 use File::Basename;
+use Data::Dumper;
 
 my $me = abs_path($0);
 my $ignore_term = dirname($me) . '/ignore-term';
@@ -34,13 +32,14 @@ connect($sock, sockaddr_un($socket_path)) or die "connect: $!";
 send($sock,netargs_encode($ignore_term),0);
 send($sock,netstring_encode(""),0);
 
-print("Getting data\n");
 recv($sock,$buffer,$length,0);
 
-print("=== data ===\n");
-print("$buffer\n");
+my $res = sockexec_decode($buffer);
+if($res->{'termsig'} eq 'KILL') {
+    exit(0);
+}
 
-exit(0);
+exit(1);
 
 sub netstring_encode {
     my $string = shift;
