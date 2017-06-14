@@ -159,6 +159,15 @@ for target_key in "${target_list[@]}"; do
         cp -a README.md dist/${target}/share/doc/sockexec/
         cp -r examples dist/${target}/share/doc/sockexec/
 
+        cp -a .gitignore dist/${target}/src/sockexec/
+        cp -a .travis.* dist/${target}/src/sockexec/
+        cp -a LICENSE* dist/${target}/src/sockexec/
+        cp -a Makefile dist/${target}/src/sockexec/
+        cp -a README.md dist/${target}/src/sockexec/
+        cp -a config.mak.example dist/${target}/src/sockexec/
+        cp -a examples dist/${target}/src/sockexec/
+        cp -a src dist/${target}/src/sockexec/
+
         tar czf dist/sockexec-${target}.tar.gz -C dist/${target} .
     fi
 done
