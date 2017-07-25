@@ -44,6 +44,6 @@ int fd;
         return child_write(conn_id,fd,except);
     }
 
-    return child_read(conn_id,fd,except);
+    return child_read(conn_id,fd);
 }
 

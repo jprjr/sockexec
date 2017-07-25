@@ -38,9 +38,12 @@ while(recv($sock,$buffer,$length,0)) {
 
 my $res = sockexec_decode($data);
 
-print Dumper $res;
+if($res->{'stdout'} eq 'This should be on stdout' and
+   $res->{'exitcode'} eq '0') {
+    exit(0);
+}
 
-exit(0);
+exit(1);
 
 sub netstring_encode {
     my $string = shift;

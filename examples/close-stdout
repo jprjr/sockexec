@@ -1,4 +1,7 @@
 #!/usr/bin/env perl
 
+close(STDIN);
 close(STDOUT);
-print STDERR "This should be on stderr\n";
+
+print STDERR "This should be on stderr";
+close(STDERR);

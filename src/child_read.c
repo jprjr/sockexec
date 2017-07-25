@@ -2,10 +2,9 @@
 
 #include <fcntl.h>
 
-int child_read(conn_id, fd, except)
+int child_read(conn_id, fd)
 int conn_id;
 int fd;
-int except;
 {
     char buffer[BUF_SIZE] = { 0 };
     int bytes_read = 0;
@@ -30,12 +29,6 @@ int except;
     {
         fprintf(stderr,"WARNING: Connection %d: unable to determine fd type (fd %d)\n",conn_id,fd);
     }
-
-    if(except)
-    {
-        goto child_read_close;
-    }
-
 
     bytes_read = fd_read(fd,buffer,BUF_SIZE);
 

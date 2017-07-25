@@ -1,9 +1,5 @@
 #!/usr/bin/env perl
 
-# calls a program that ignores TERM signals
-# be sure to run sockexec with a shorter timeout
-# value for this test
-
 use strict;
 use warnings;
 
@@ -38,9 +34,12 @@ while(recv($sock,$buffer,$length,0)) {
 
 my $res = sockexec_decode($data);
 
-print Dumper $res;
+if($res->{'stderr'} eq 'This should be on stderr' and
+   $res->{'exitcode'} eq '0') {
+    exit(0);
+}
 
-exit(0);
+exit(1);
 
 sub netstring_encode {
     my $string = shift;
