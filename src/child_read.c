@@ -9,7 +9,7 @@ int except;
 {
     char buffer[BUF_SIZE] = { 0 };
     int bytes_read = 0;
-    int is_stdout = 0;
+    enum CHILD_OUTPUT_TYPE output_type = CHILD_UNKNOWN;
 
     if(debug)
     {
@@ -17,9 +17,18 @@ int except;
     }
     errno = 0;
 
-    if(conn_tbl[conn_id].child_stdout_fd > 0 && conn_tbl[conn_id].child_stdout_fd == fd)
+    if(conn_tbl[conn_id].child_stdout_fd == fd)
     {
-        is_stdout = 1;
+        output_type = CHILD_STDOUT;
+    }
+    else if(conn_tbl[conn_id].child_stderr_fd == fd)
+    {
+        output_type = CHILD_STDERR;
+    }
+
+    if(output_type == CHILD_UNKNOWN)
+    {
+        fprintf(stderr,"WARNING: Connection %d: unable to determine fd type (fd %d)\n",conn_id,fd);
     }
 
     if(except)
@@ -32,14 +41,11 @@ int except;
 
     if(bytes_read > 0)
     {
-        if(is_stdout)
+        if(debug)
         {
-            stralloc_catb(&(conn_tbl[conn_id].child_stdout),buffer,bytes_read);
+            fprintf(stderr,"Connection %d: read %d bytes from %s (fd %d)\n",conn_id,bytes_read,CHILD_OUTPUT_TYPES[output_type],fd);
         }
-        else
-        {
-            stralloc_catb(&(conn_tbl[conn_id].child_stderr),buffer,bytes_read);
-        }
+        stralloc_catb(&(conn_tbl[conn_id].child_outputs[output_type]),buffer,bytes_read);
     }
     if(bytes_read < 0)
     {
@@ -57,16 +63,16 @@ int except;
         child_read_close:
         if(debug)
         {
-            fprintf(stderr,"Connection %d: closing child %s fd (%d)\n",conn_id,is_stdout ? "stdout":"stderr", fd);
+            fprintf(stderr,"Connection %d: closing process %s (fd %d)\n",conn_id,CHILD_OUTPUT_TYPES[output_type], fd);
         }
         fd_close(fd);
         fds_tbl[fd].fd = -1;
         fd_tbl[fd] = -1;
-        if(is_stdout)
+        if(output_type == CHILD_STDOUT)
         {
             conn_tbl[conn_id].child_stdout_fd = -1;
         }
-        else
+        else if(output_type == CHILD_STDERR)
         {
             conn_tbl[conn_id].child_stderr_fd = -1;
         }

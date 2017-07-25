@@ -11,7 +11,24 @@ BINDIR = $(PREFIX)/bin
 
 .PHONY: clean install all test
 
-SRCS != ls src/*.c
+SRCS = \
+	src/common.h \
+	src/accept_client.c \
+	src/child_read.c \
+	src/child_spawn3.c \
+	src/child_write.c \
+	src/cleanup.c \
+	src/client_read.c \
+	src/client_write.c \
+	src/close_connection.c \
+	src/dump_connection.c \
+	src/dump_fds.c \
+	src/kill_processes.c \
+	src/process_signals.c \
+	src/route_event.c \
+	src/sockexec.c \
+	src/update_child.c \
+	src/update_client.c
 
 TARGET = sockexec
 

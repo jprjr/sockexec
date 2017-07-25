@@ -5,35 +5,26 @@ int conn_id;
 {
     int things_to_do = 0;
 
-    if(conn_tbl[conn_id].child_stdout.len)
+    enum CHILD_OUTPUT_TYPE output = CHILD_UNKNOWN;
+
+    for(output = CHILD_UNKNOWN; output < CHILD_OUTPUT_NULL; output++)
     {
-        if(conn_tbl[conn_id].client > -1)
-        {
-            netstring_encode(&(conn_tbl[conn_id].client_out_buffer),
-              "stdout",
-              6);
-            netstring_encode(&(conn_tbl[conn_id].client_out_buffer),
-              conn_tbl[conn_id].child_stdout.s,
-              conn_tbl[conn_id].child_stdout.len);
-            things_to_do = 1;
-        }
-        stralloc_free(&(conn_tbl[conn_id].child_stdout));
+      if(conn_tbl[conn_id].child_outputs[output].len)
+      {
+          if(conn_tbl[conn_id].client > -1)
+          {
+              netstring_encode(&(conn_tbl[conn_id].client_out_buffer),
+                CHILD_OUTPUT_TYPES[output],
+                strlen(CHILD_OUTPUT_TYPES[output]));
+              netstring_encode(&(conn_tbl[conn_id].client_out_buffer),
+                conn_tbl[conn_id].child_outputs[output].s,
+                conn_tbl[conn_id].child_outputs[output].len);
+              things_to_do = 1;
+          }
+          stralloc_free(&(conn_tbl[conn_id].child_outputs[output]));
+      }
     }
 
-    if(conn_tbl[conn_id].child_stderr.len)
-    {
-        if(conn_tbl[conn_id].client > -1)
-        {
-            netstring_encode(&(conn_tbl[conn_id].client_out_buffer),
-              "stderr",
-              6);
-            netstring_encode(&(conn_tbl[conn_id].client_out_buffer),
-              conn_tbl[conn_id].child_stderr.s,
-              conn_tbl[conn_id].child_stderr.len);
-            things_to_do = 1;
-        }
-        stralloc_free(&(conn_tbl[conn_id].child_stderr));
-    }
     if(conn_tbl[conn_id].child_pid == 0 && conn_tbl[conn_id].child_exit_code >= 0)
     {
         if(conn_tbl[conn_id].client > -1)

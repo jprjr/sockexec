@@ -130,8 +130,9 @@ int quitting;
     stralloc_free(&(conn_tbl[conn_id].client_in_buffer));
     stralloc_free(&(conn_tbl[conn_id].client_out_buffer));
     stralloc_free(&(conn_tbl[conn_id].child_stdin));
-    stralloc_free(&(conn_tbl[conn_id].child_stdout));
-    stralloc_free(&(conn_tbl[conn_id].child_stderr));
+    stralloc_free(&(conn_tbl[conn_id].child_outputs[0]));
+    stralloc_free(&(conn_tbl[conn_id].child_outputs[1]));
+    stralloc_free(&(conn_tbl[conn_id].child_outputs[2]));
     genalloc_free(char **,&(conn_tbl[conn_id].child_argv));
     return 1;
 

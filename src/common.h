@@ -24,6 +24,22 @@
 
 extern const char **environ;
 
+enum CHILD_OUTPUT_TYPE {
+    CHILD_UNKNOWN,
+    CHILD_STDOUT,
+    CHILD_STDERR,
+    CHILD_OUTPUT_NULL,
+};
+
+static const char* const CHILD_OUTPUT_TYPES[] =
+{
+  "unknown",
+  "stdout",
+  "stderr",
+  0
+};
+
+
 struct connection_t_ {
     int client;
 
@@ -40,8 +56,7 @@ struct connection_t_ {
     int child_stdout_fd;
     int child_stderr_fd;
 
-    stralloc child_stdout;
-    stralloc child_stderr;
+    stralloc child_outputs[3];
 
     stralloc client_in_buffer;
     unsigned int client_in_buffer_pos;
@@ -67,8 +82,11 @@ static const connection_t connection_t_zero = {
     .child_stdin_fd = -1,
     .child_stdout_fd = -1,
     .child_stderr_fd = -1,
-    .child_stdout = STRALLOC_ZERO,
-    .child_stderr = STRALLOC_ZERO,
+    .child_outputs = {
+        STRALLOC_ZERO,
+        STRALLOC_ZERO,
+        STRALLOC_ZERO,
+    },
     .client_in_buffer = STRALLOC_ZERO,
     .client_in_buffer_pos = 0,
     .client_out_buffer = STRALLOC_ZERO,

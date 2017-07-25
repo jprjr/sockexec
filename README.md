@@ -122,6 +122,7 @@ There's four kinds of data that `sockexec` will send:
 * `stderr` - data from the program's standard error
 * `exitcode` - the program's exit code (only for normal exits)
 * `termsig` - the signal code that terminated the program (abnormal exits)
+* `unknown` - if this happens, a real error has occured - `sockexec` was unable to determine if output was from `stdout` or `stderr`, please send in a bug report!
 
 An example:
 

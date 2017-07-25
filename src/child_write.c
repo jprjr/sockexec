@@ -20,7 +20,7 @@ int except;
 
         if(debug)
         {
-            fprintf(stderr,"Connection %d: writing %d bytes of data to child stdin\n", conn_id, bytes_to_send);
+            fprintf(stderr,"Connection %d: writing %d bytes of data to process stdin (fd %d)\n", conn_id, bytes_to_send,fd);
         }
         bytes_sent = fd_write(
           conn_tbl[conn_id].child_stdin_fd,
@@ -28,7 +28,7 @@ int except;
           conn_tbl[conn_id].child_stdin.len - conn_tbl[conn_id].child_stdin_pos);
         if(debug)
         {
-            fprintf(stderr,"Connection %d: wrote %d bytes of data to child stdin\n",conn_id, bytes_sent);
+            fprintf(stderr,"Connection %d: wrote %d bytes of data to process stdin (fd %d)\n",conn_id, bytes_sent, fd);
         }
         if(bytes_sent > 0)
         {
@@ -51,7 +51,7 @@ int except;
         {
             if(debug)
             {
-                fprintf(stderr,"Connection %d: closing child stdin (fd %d)\n",conn_id,fd);
+                fprintf(stderr,"Connection %d: closing process stdin (fd %d)\n",conn_id,fd);
             }
             stralloc_free(&(conn_tbl[conn_id].child_stdin));
             conn_tbl[conn_id].child_stdin_pos = -1;

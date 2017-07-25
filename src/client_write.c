@@ -23,6 +23,11 @@ int except;
     outgoing_buffer = conn_tbl[conn_id].client_out_buffer.s + conn_tbl[conn_id].client_out_buffer_pos;
     bytes_to_send = conn_tbl[conn_id].client_out_buffer.len - conn_tbl[conn_id].client_out_buffer_pos;
 
+    if(debug)
+    {
+        fprintf(stderr,"Connection %d: sending %d bytes to client\n",conn_id,bytes_to_send);
+    }
+
     bytes_sent = fd_send(conn_tbl[conn_id].client,outgoing_buffer,bytes_to_send,0);
 
     if(debug)
@@ -32,8 +37,9 @@ int except;
 
     if(bytes_sent < 0)
     {
-        return 0;
+        goto client_write_close;
     }
+
     conn_tbl[conn_id].client_out_buffer_pos += bytes_sent;
 
     if(conn_tbl[conn_id].client_out_buffer_pos == conn_tbl[conn_id].client_out_buffer.len)
