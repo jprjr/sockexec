@@ -11,8 +11,9 @@ BINDIR = $(PREFIX)/bin
 
 .PHONY: clean install all test
 
-SRCS = \
-	src/common.h \
+HEADERS = src/common.h src/functions.h
+
+SRCS := \
 	src/accept_client.c \
 	src/child_read.c \
 	src/child_spawn3.c \
@@ -30,6 +31,8 @@ SRCS = \
 	src/update_child.c \
 	src/update_client.c
 
+OBJS := ${SRCS:c=o}
+
 TARGET = sockexec
 
 all: $(TARGET)
@@ -39,11 +42,15 @@ install: $(TARGET)
 
 $(TARGET): bin/$(TARGET)
 
-bin/$(TARGET): $(SRCS)
+bin/$(TARGET): $(OBJS)
 	mkdir -p bin
-	$(CC) $(CFLAGS) -o bin/$(TARGET) $(SRCS) $(LDFLAGS)
+	$(CC) -o bin/$(TARGET) $(OBJS) $(LDFLAGS)
+
+%.o: %.c $(HEADERS)
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 clean:
 	rm -f bin/$(TARGET)
+	rm -f $(OBJS)
 
 test: $(TARGET)

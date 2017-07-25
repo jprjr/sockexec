@@ -31,13 +31,7 @@ enum CHILD_OUTPUT_TYPE {
     CHILD_OUTPUT_NULL,
 };
 
-static const char* const CHILD_OUTPUT_TYPES[] =
-{
-  "unknown",
-  "stdout",
-  "stderr",
-  0
-};
+extern const char* const CHILD_OUTPUT_TYPES[];
 
 
 struct connection_t_ {
@@ -69,32 +63,6 @@ struct connection_t_ {
 };
 typedef struct connection_t_ connection_t;
 
-static const connection_t connection_t_zero = {
-    .client = -1,
-    .child_argc = 0,
-    .child_argv = GENALLOC_ZERO,
-    .child_stdin = STRALLOC_ZERO,
-    .child_stdin_pos = 0,
-    .child_stdin_done = 0,
-    .child_pid = 0,
-    .child_exit_code = -1,
-    .child_exit_signal = -1,
-    .child_stdin_fd = -1,
-    .child_stdout_fd = -1,
-    .child_stderr_fd = -1,
-    .child_outputs = {
-        STRALLOC_ZERO,
-        STRALLOC_ZERO,
-        STRALLOC_ZERO,
-    },
-    .client_in_buffer = STRALLOC_ZERO,
-    .client_in_buffer_pos = 0,
-    .client_out_buffer = STRALLOC_ZERO,
-    .client_out_buffer_pos = 0,
-    .deadline = TAIN_ZERO,
-    .sigsent = 0
-};
-
 /* global variables */
 genalloc _conn_tbl;
 genalloc _fds_tbl;
@@ -123,13 +91,6 @@ char debug;
 #define conn_tbl_append(p)  genalloc_append(connection_t,&_conn_tbl,p)
 
 #define tain_lesseq(a,b)    (tain_less(a,b) && !tain_less(b,a))
-
-static const iopause_fd iopause_zero = {
-    .fd = -1,
-    .events = IOPAUSE_READ,
-    .revents = 0
-};
-
 
 #include "functions.h"
 

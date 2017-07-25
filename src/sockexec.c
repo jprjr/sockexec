@@ -8,6 +8,46 @@
 #define dienobind()   strerr_diefu1sys(111, "ipc_bind")
 #define dienolisten() strerr_diefu1sys(111, "ipc_listen")
 
+const char* const CHILD_OUTPUT_TYPES[] =
+{
+  "unknown",
+  "stdout",
+  "stderr",
+  0
+};
+
+static const connection_t connection_t_zero = {
+    .client = -1,
+    .child_argc = 0,
+    .child_argv = GENALLOC_ZERO,
+    .child_stdin = STRALLOC_ZERO,
+    .child_stdin_pos = 0,
+    .child_stdin_done = 0,
+    .child_pid = 0,
+    .child_exit_code = -1,
+    .child_exit_signal = -1,
+    .child_stdin_fd = -1,
+    .child_stdout_fd = -1,
+    .child_stderr_fd = -1,
+    .child_outputs = {
+        STRALLOC_ZERO,
+        STRALLOC_ZERO,
+        STRALLOC_ZERO,
+    },
+    .client_in_buffer = STRALLOC_ZERO,
+    .client_in_buffer_pos = 0,
+    .client_out_buffer = STRALLOC_ZERO,
+    .client_out_buffer_pos = 0,
+    .deadline = TAIN_ZERO,
+    .sigsent = 0
+};
+
+static const iopause_fd iopause_zero = {
+    .fd = -1,
+    .events = IOPAUSE_READ,
+    .revents = 0
+};
+
 int main(int argc, char const *const *argv) {
 
     timeout = 60;
