@@ -2,9 +2,10 @@
 
 #include <fcntl.h>
 
-int child_read(conn_id, fd)
+int child_read(conn_id, fd, except)
 int conn_id;
 int fd;
+int except;
 {
     char buffer[BUF_SIZE] = { 0 };
     int bytes_read = 0;
@@ -14,13 +15,18 @@ int fd;
     {
         fprintf(stderr,"Connection %d: reading process data (fd %d)\n",conn_id,fd);
     }
-
     errno = 0;
 
     if(conn_tbl[conn_id].child_stdout_fd > 0 && conn_tbl[conn_id].child_stdout_fd == fd)
     {
         is_stdout = 1;
     }
+
+    if(except)
+    {
+        goto child_read_close;
+    }
+
 
     bytes_read = fd_read(fd,buffer,BUF_SIZE);
 
@@ -43,17 +49,16 @@ int fd;
         }
         else
         {
-            fprintf(stderr,"WARNING: Error reading data (%s), closing connection %d, fd %d\n",strerror(errno),conn_id,fd);
-            goto connclose;
+            goto child_read_close;
         }
     }
     if(bytes_read == 0)
     {
+        child_read_close:
         if(debug)
         {
-            fprintf(stderr,"Connection %d: closing child fd (%d)\n",conn_id,fd);
+            fprintf(stderr,"Connection %d: closing child %s fd (%d)\n",conn_id,is_stdout ? "stdout":"stderr", fd);
         }
-        connclose:
         fd_close(fd);
         fds_tbl[fd].fd = -1;
         fd_tbl[fd] = -1;

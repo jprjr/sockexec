@@ -1,0 +1,29 @@
+#!/usr/bin/env perl
+#
+select STDIN; $| = 1;
+select STDERR; $| = 1;
+select STDOUT; $| = 1;
+
+close(STDIN);
+
+print STDOUT "This is on stdout\n";
+open(my $oldout, '>&STDOUT');
+open(STDOUT, '>', '/dev/null');
+print STDOUT "This is on a stdout to /dev/null\n";
+open(STDOUT, '>&', $oldout);
+
+print STDOUT "This is on the original stdout\n";
+
+print STDERR "This is on stderr\n";
+open(my $olderr, '>&STDERR');
+open(STDERR, '>', '/dev/null');
+print STDERR "This is on a stderr to /dev/null\n";
+open(STDERR, '>&', $olderr);
+
+print STDERR "This is on the original stderr\n";
+
+close(STDERR);
+sleep(1);
+print STDOUT "This is on stdout\n";
+close(STDOUT);
+sleep(3);

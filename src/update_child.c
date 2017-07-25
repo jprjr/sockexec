@@ -7,6 +7,15 @@ int conn_id;
 
     int bytes_read = 0;
 
+    if(conn_tbl[conn_id].child_argc == 0 &&
+        (conn_tbl[conn_id].child_exit_code > -1 ||
+        conn_tbl[conn_id].child_exit_signal > -1))
+    {
+        fprintf(stderr,"Warning: connection %d, attempting to send data after process ended\n",conn_id);
+        close_connection(conn_id,1,0);
+        return 0;
+    }
+
     if(conn_tbl[conn_id].child_argc == 0)
     {
         stralloc tmp = STRALLOC_ZERO;

@@ -1,8 +1,9 @@
 #include "common.h"
 #include "common.h"
 
-int client_read(conn_id)
+int client_read(conn_id,except)
 int conn_id;
+int except;
 {
     char buffer[BUF_SIZE] = { 0 };
     int bytes_read = 0;
@@ -10,6 +11,10 @@ int conn_id;
     if(debug)
     {
         fprintf(stderr,"Connection %d: reading client data\n",conn_id);
+    }
+    if(except)
+    {
+        goto client_read_close;
     }
 
     while( (bytes_read = ipc_recv(conn_tbl[conn_id].client,buffer,BUF_SIZE,0)) > 0 )
@@ -27,13 +32,13 @@ int conn_id;
         }
         else
         {
-            fprintf(stderr,"ERROR: Connection %d: unable to read from client (%s)\n",conn_id,strerror(errno));
-            return 0;
+            goto client_read_close;
         }
     }
 
     if(bytes_read == 0)
     {
+        client_read_close:
         if(debug) {
             fprintf(stderr,"Connection %d: client sent 0 bytes, closing connection\n",conn_id);
         }

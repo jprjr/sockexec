@@ -1,0 +1,4 @@
+#!/usr/bin/env perl
+
+close(STDOUT);
+print STDERR "This should be on stderr\n";

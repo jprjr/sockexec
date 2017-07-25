@@ -2,36 +2,48 @@
 
 #include <fcntl.h>
 
-int child_write(conn_id, fd)
+int child_write(conn_id, fd, except)
 int conn_id;
 int fd;
+int except;
 {
     int bytes_sent = 0;
-
-    if(debug)
+    int bytes_to_send = conn_tbl[conn_id].child_stdin.len - conn_tbl[conn_id].child_stdin_pos;
+    if(except)
     {
-        fprintf(stderr,"Connection %d: writing data to child stdin\n",conn_id);
+        conn_tbl[conn_id].child_stdin_done = 1;
+        goto child_write_close;
     }
 
-    if(conn_tbl[conn_id].child_stdin_pos < conn_tbl[conn_id].child_stdin.len)
+    if(bytes_to_send > 0)
     {
+
+        if(debug)
+        {
+            fprintf(stderr,"Connection %d: writing %d bytes of data to child stdin\n", conn_id, bytes_to_send);
+        }
         bytes_sent = fd_write(
           conn_tbl[conn_id].child_stdin_fd,
           conn_tbl[conn_id].child_stdin.s + conn_tbl[conn_id].child_stdin_pos,
           conn_tbl[conn_id].child_stdin.len - conn_tbl[conn_id].child_stdin_pos);
+        if(debug)
+        {
+            fprintf(stderr,"Connection %d: wrote %d bytes of data to child stdin\n",conn_id, bytes_sent);
+        }
         if(bytes_sent > 0)
         {
-             conn_tbl[conn_id].child_stdin_pos += bytes_sent;
+            conn_tbl[conn_id].child_stdin_pos += bytes_sent;
         }
         if(bytes_sent < 0 )
         {
-            fprintf(stderr,"WARNING: Connection %d: writing data to child failed (%s)\n",conn_id,strerror(errno));
-            return 0;
+            conn_tbl[conn_id].child_stdin_done = 1;
+            goto child_write_close;
         }
     }
 
     if (conn_tbl[conn_id].child_stdin_pos == conn_tbl[conn_id].child_stdin.len)
     {
+        child_write_close:
         /* take stdin out of the pollfd loop */
         fds_tbl[conn_tbl[conn_id].child_stdin_fd].fd = -1;
 

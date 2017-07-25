@@ -1,8 +1,12 @@
 #include "common.h"
 
-int client_write(conn_id)
+int client_write(conn_id,except)
 int conn_id;
+int except;
 {
+    if(except) {
+        goto client_write_close;
+    }
     int bytes_sent = 0;
     int bytes_to_send;
     char *outgoing_buffer;
@@ -34,6 +38,7 @@ int conn_id;
 
     if(conn_tbl[conn_id].client_out_buffer_pos == conn_tbl[conn_id].client_out_buffer.len)
     {
+        client_write_close:
         conn_tbl[conn_id].client_out_buffer_pos = 0;
         stralloc_free(&(conn_tbl[conn_id].client_out_buffer));
         /* done sending data */
