@@ -77,7 +77,7 @@ int conn_id;
                 conn_tbl[conn_id].client_in_buffer_pos += bytes_read;
                 if(debug)
                 {
-                    fprintf(stderr,"Connection %d: read %zu bytes of stdin\n",conn_id,tmp.len);
+                    fprintf(stderr,"Connection %d: read %zu bytes of stdin\n",conn_id,(size_t)tmp.len);
                 }
 
                 if(tmp.len > 0) {
