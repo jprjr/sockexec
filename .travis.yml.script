@@ -2,9 +2,9 @@
 set -e
 set -x
 
-MUSL_CROSS_MAKE_RELEASE=3
+MUSL_CROSS_MAKE_RELEASE=4
 MUSL_CROSS_MAKE_SRC="https://github.com/jprjr/musl-cross-make-static/releases/download/${MUSL_CROSS_MAKE_RELEASE}"
-SKAWARE_VERSION=1.20.0
+SKAWARE_VERSION=1.21.2
 SKAWARE_SOURCE="https://github.com/just-containers/skaware/releases/download/v${SKAWARE_VERSION}"
 MAKE_VERSION=4.2
 AUXDIR=$(pwd)/aux
@@ -154,6 +154,9 @@ for target_key in "${target_list[@]}"; do
           LDFLAGS="${staticflags} -Laux/skalibs-${target}/usr/lib -lskarnet"
         ${AUXDIR}/gcc-${target}/bin/${target}-strip ./bin/sockexec
         cp -a bin/sockexec dist/${target}/bin/sockexec
+
+        ${AUXDIR}/bin/make clean
+
         cp -a LICENSE dist/${target}/share/doc/sockexec/
         cp -a LICENSE.skalibs dist/${target}/share/doc/sockexec/
         cp -a README.md dist/${target}/share/doc/sockexec/
