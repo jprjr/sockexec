@@ -153,7 +153,9 @@ for target_key in "${target_list[@]}"; do
           CFLAGS="${staticflags} -Iaux/skalibs-${target}/usr/include -Wall -Wextra -Werror -O3" \
           LDFLAGS="${staticflags} -Laux/skalibs-${target}/usr/lib -lskarnet"
         ${AUXDIR}/gcc-${target}/bin/${target}-strip ./bin/sockexec
+        ${AUXDIR}/gcc-${target}/bin/${target}-strip ./bin/sockexec.client
         cp -a bin/sockexec dist/${target}/bin/sockexec
+        cp -a bin/sockexec dist/${target}/bin/sockexec.client
 
         ${AUXDIR}/bin/make clean
 
