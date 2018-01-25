@@ -155,7 +155,7 @@ for target_key in "${target_list[@]}"; do
         ${AUXDIR}/gcc-${target}/bin/${target}-strip ./bin/sockexec
         ${AUXDIR}/gcc-${target}/bin/${target}-strip ./bin/sockexec.client
         cp -a bin/sockexec dist/${target}/bin/sockexec
-        cp -a bin/sockexec dist/${target}/bin/sockexec.client
+        cp -a bin/sockexec.client dist/${target}/bin/sockexec.client
 
         ${AUXDIR}/bin/make clean
 
