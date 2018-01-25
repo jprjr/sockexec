@@ -7,6 +7,7 @@
 
 /* MT-unsafe */
 
+#include <stdio.h>
 #include <skalibs/sysdeps.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -34,7 +35,7 @@
 
 #endif
 
-pid_t jprjr_child_spawn3 (char const *prog, char const *const *argv, char const *const *envp, int *child_stdin, int *child_stdout, int *child_stderr)
+pid_t jprjr_child_spawn3 (char const *prog, char const *const *argv, char **envp, int *child_stdin, int *child_stdout, int *child_stderr)
 {
 #ifdef SKALIBS_HASPOSIXSPAWN
   posix_spawn_file_actions_t actions ;
@@ -75,21 +76,21 @@ pid_t jprjr_child_spawn3 (char const *prog, char const *const *argv, char const 
   e = posix_spawn_file_actions_init(&actions) ;
   if (e) goto errattr ;
 
-  e = posix_spawn_file_actions_adddup2(&actions, p[0][0], 0) ;
+  e = posix_spawn_file_actions_adddup2(&actions, p[0][0], fileno(stdin)) ;
   if (e) goto erractions ;
   e = posix_spawn_file_actions_addclose(&actions, p[0][0]) ;
   if (e) goto erractions ;
   e = posix_spawn_file_actions_addclose(&actions, p[0][1]) ;
   if (e) goto erractions ;
 
-  e = posix_spawn_file_actions_adddup2(&actions, p[1][1], 1) ;
+  e = posix_spawn_file_actions_adddup2(&actions, p[1][1], fileno(stdout)) ;
   if (e) goto erractions ;
   e = posix_spawn_file_actions_addclose(&actions, p[1][1]) ;
   if (e) goto erractions ;
   e = posix_spawn_file_actions_addclose(&actions, p[1][0]) ;
   if (e) goto erractions ;
 
-  e = posix_spawn_file_actions_adddup2(&actions, p[2][1], 2) ;
+  e = posix_spawn_file_actions_adddup2(&actions, p[2][1], fileno(stderr)) ;
   if (e) goto erractions ;
   e = posix_spawn_file_actions_addclose(&actions, p[2][1]) ;
   if (e) goto erractions ;
@@ -113,9 +114,9 @@ pid_t jprjr_child_spawn3 (char const *prog, char const *const *argv, char const 
   else if (!pid)
   {
     fd_close(syncpipe[0]) ;
-    if(fd_move(0,p[0][0]) < 0) goto syncdie;
-    if(fd_move(1,p[1][1]) < 0) goto syncdie;
-    if(fd_move(2,p[2][1]) < 0) goto syncdie;
+    if(fd_move(fileno(stdin),p[0][0]) < 0) goto syncdie;
+    if(fd_move(fileno(stdout),p[1][1]) < 0) goto syncdie;
+    if(fd_move(fileno(stderr),p[2][1]) < 0) goto syncdie;
     sig_blocknone() ;
     pathexec_run(prog, argv, envp);
 

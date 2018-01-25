@@ -22,7 +22,7 @@
 #define BUF_SIZE 4096
 
 
-extern const char **environ;
+extern char **environ;
 
 enum CHILD_OUTPUT_TYPE {
     CHILD_UNKNOWN,

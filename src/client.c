@@ -70,8 +70,8 @@ int main(int argc, char const *const *argv) {
     stralloc_free(&sa);
 
     num_len = 0;
-    if(!isatty(0)) {
-        while((num_len = fd_read(0,buffer,4096)) > 0) {
+    if(!isatty(fileno(stdin))) {
+        while((num_len = fd_read(fileno(stdin),buffer,4096)) > 0) {
             netstring_encode(&sa,buffer,num_len);
 
             if(!fd_send(fd,sa.s,sa.len,0)) {
