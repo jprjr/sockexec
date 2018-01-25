@@ -42,6 +42,15 @@ int main(int argc, char const *const *argv) {
     argv++;
     argc--;
     char const *p = argv[0];
+
+    fd = ipc_stream_b();
+    if(fd < 0) {
+        dienosocket();
+    }
+    if(!ipc_connect(fd,p)) {
+        dienoconnect();
+    }
+
     argv++;
     argc--;
 
@@ -54,16 +63,26 @@ int main(int argc, char const *const *argv) {
         argv++;
         argc--;
     }
-    netstring_encode(&sa,"",0);
-    stralloc_0(&sa);
 
-    fd = ipc_stream_b();
-    if(fd < 0) {
-        dienosocket();
+    if(!fd_send(fd,sa.s,sa.len,0)) {
+        strerr_diefu1sys(111,"ipc_send");
     }
-    if(!ipc_connect(fd,p)) {
-        dienoconnect();
+    stralloc_free(&sa);
+
+    num_len = 0;
+    if(!isatty(0)) {
+        while((num_len = fd_read(0,buffer,4096)) > 0) {
+            netstring_encode(&sa,buffer,num_len);
+
+            if(!fd_send(fd,sa.s,sa.len,0)) {
+                strerr_diefu1sys(111,"ipc_send");
+            }
+            stralloc_free(&sa);
+        }
+        num_len = 0;
     }
+
+    netstring_encode(&sa,"",0);
 
     if(!fd_send(fd,sa.s,sa.len,0)) {
         strerr_diefu1sys(111,"ipc_send");
@@ -71,7 +90,6 @@ int main(int argc, char const *const *argv) {
 
     stralloc_free(&sa);
 
-    num_len = 0;
     while((num_len = fd_recv(fd,buffer,4096,0)) > 0) {
         b = buffer;
         while((pos = netstring_decode(&sa,b,num_len)) > 0) {
