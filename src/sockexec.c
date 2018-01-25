@@ -1,7 +1,7 @@
 #include "common.h"
 
 #define USAGE "sockexec [-v] [-d] [-q queue_size] [-m max_connections] [-t timeout] [-k kill_timeout] /path/to/socket"
-#define VERSION "2.0.0"
+#define VERSION "2.0.2"
 #define dieusage() strerr_dieusage(100, USAGE)
 #define dienomem()    strerr_diefu1sys(111, "stralloc_catb")
 #define dienosocket() strerr_diefu1sys(111, "ipc_stream_nb")
