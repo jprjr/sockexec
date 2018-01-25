@@ -34,7 +34,7 @@
 
 #endif
 
-pid_t child_spawn3 (char const *prog, char const *const *argv, char const *const *envp, int *child_stdin, int *child_stdout, int *child_stderr)
+pid_t jprjr_child_spawn3 (char const *prog, char const *const *argv, char const *const *envp, int *child_stdin, int *child_stdout, int *child_stderr)
 {
 #ifdef SKALIBS_HASPOSIXSPAWN
   posix_spawn_file_actions_t actions ;

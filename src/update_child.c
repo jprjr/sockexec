@@ -122,7 +122,7 @@ int conn_id;
 
         genalloc_s(char **,&(conn_tbl[conn_id].child_argv))[conn_tbl[conn_id].child_argc] = 0;
 
-        conn_tbl[conn_id].child_pid = child_spawn3(
+        conn_tbl[conn_id].child_pid = jprjr_child_spawn3(
                 (const char *)genalloc_s(char **, &(conn_tbl[conn_id].child_argv))[0],
                 (const char * const*)genalloc_s(char **, &(conn_tbl[conn_id].child_argv)),
                 environ,

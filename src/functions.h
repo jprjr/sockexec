@@ -15,7 +15,7 @@ int child_write(int, int, int);
 int child_read(int, int);
 int accept_client(int);
 int update_client(int);
-pid_t child_spawn3 (char const *, char const *const *, char const *const *, int *, int *, int *);
+pid_t jprjr_child_spawn3 (char const *, char const *const *, char const *const *, int *, int *, int *);
 
 #endif
 
