@@ -3,8 +3,8 @@ set -e
 set -x
 
 MUSL_CROSS_MAKE_RELEASE=9
-MUSL_CROSS_MAKE_SRC="https://github.com/just-containers/musl-cross-make-static/releases/download/${MUSL_CROSS_MAKE_RELEASE}"
-SKAWARE_VERSION=1.21.4
+MUSL_CROSS_MAKE_SRC="https://github.com/just-containers/musl-cross-make/releases/download/v${MUSL_CROSS_MAKE_RELEASE}"
+SKAWARE_VERSION=1.21.5
 SKAWARE_SOURCE="https://github.com/just-containers/skaware/releases/download/v${SKAWARE_VERSION}"
 MAKE_VERSION=4.2
 AUXDIR=$(pwd)/aux
@@ -44,13 +44,13 @@ cd aux
 # download manifests
 rm -f manifest.txt musl-cross-manifest.txt skaware-manifest.txt
 
-wget -nv "${MUSL_CROSS_MAKE_SRC}/manifest.txt"
-cp -a manifest.txt musl-cross-manifest.txt
-rm manifest.txt
+wget -nv "${MUSL_CROSS_MAKE_SRC}/gcc-7.2.0-manifest.txt"
+cp -a gcc-7.2.0-manifest.txt musl-cross-manifest.txt
+rm -f gcc-7.2.0-manifest.txt
 
 wget -nv "${SKAWARE_SOURCE}/manifest.txt"
 cp -a manifest.txt skaware-manifest.txt
-rm manifest.txt
+rm -f manifest.txt
 
 wget -nv "https://ftp.gnu.org/gnu/make/make-${MAKE_VERSION}.tar.bz2"
 tar xf make-${MAKE_VERSION}.tar.bz2
@@ -94,9 +94,9 @@ for target_key in "${target_list[@]}"; do
         mkdir -p gcc-${target}
         mkdir -p skalibs-${target}
 
-        wget -N "${MUSL_CROSS_MAKE_SRC}/gcc-${versions__gcc}-${target}.tar.gz"
+        wget -N "${MUSL_CROSS_MAKE_SRC}/gcc-${versions__gcc}-${target}.tar.xz"
         wget -N "${SKAWARE_SOURCE}/skalibs-${versions__skalibs}-linux-${targetshort}-dev.tar.gz"
-        tar xf "gcc-${versions__gcc}-${target}.tar.gz" -C "gcc-${target}"
+        tar xf "gcc-${versions__gcc}-${target}.tar.xz" -C "gcc-${target}"
         tar xf "skalibs-${versions__skalibs}-linux-${targetshort}-dev.tar.gz" -C "skalibs-${target}"
     fi
 done
