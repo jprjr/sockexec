@@ -18,7 +18,11 @@
 #include <skalibs/sig.h>
 #include <skalibs/lolstdio.h>
 #include <skalibs/alloc.h>
+#ifdef SOCKEXEC_HASPOSIXPLZ
 #include <skalibs/posixplz.h>
+#else
+#include <skalibs/environ.h>
+#endif
 
 #define BUF_SIZE 4096
 

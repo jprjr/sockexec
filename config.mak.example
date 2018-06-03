@@ -1,3 +1,0 @@
-CFLAGS = -static -Wall -Werror -fPIC
-LDFLAGS = -static
-

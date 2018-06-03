@@ -1,0 +1,3 @@
+package=sockexec
+version=2.0.4
+package_macro_name=SOCKEXEC

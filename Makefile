@@ -1,62 +1,147 @@
-CC = gcc
-LD = gcc
-CFLAGS = -Wall -Wextra -Werror -O3 -fPIC
-LDFLAGS = -lskarnet
-PREFIX = /usr/local
-DESTDIR =
+#
+# This Makefile requires GNU make.
+#
+# Do not make changes here.
+# Use the included .mak files.
+#
 
-BINDIR = $(PREFIX)/bin
+it: all
+
+make_need := 3.81
+ifeq "" "$(strip $(filter $(make_need), $(firstword $(sort $(make_need) $(MAKE_VERSION)))))"
+fail := $(error Your make ($(MAKE_VERSION)) is too old. You need $(make_need) or newer)
+endif
+
+CC = $(error Please use ./configure first)
+
+STATIC_LIBS :=
+SHARED_LIBS :=
+INTERNAL_LIBS :=
+EXTRA_TARGETS :=
+LIB_DEFS :=
+
+define library_definition
+LIB$(firstword $(subst =, ,$(1))) := lib$(lastword $(subst =, ,$(1))).$(if $(DO_ALLSTATIC),a,so).xyzzy
+ifdef DO_SHARED
+SHARED_LIBS += lib$(lastword $(subst =, ,$(1))).so.xyzzy
+endif
+ifdef DO_STATIC
+STATIC_LIBS += lib$(lastword $(subst =, ,$(1))).a.xyzzy
+endif
+endef
 
 -include config.mak
+include package/targets.mak
 
-.PHONY: clean install all test
+$(foreach var,$(LIB_DEFS),$(eval $(call library_definition,$(var))))
 
-HEADERS = src/common.h src/functions.h
+include package/deps.mak
 
-SRCS := \
-	src/accept_client.c \
-	src/child_read.c \
-	src/jprjr_child_spawn3.c \
-	src/child_write.c \
-	src/cleanup.c \
-	src/client_read.c \
-	src/client_write.c \
-	src/close_connection.c \
-	src/dump_connection.c \
-	src/dump_fds.c \
-	src/kill_processes.c \
-	src/process_signals.c \
-	src/route_event.c \
-	src/sockexec.c \
-	src/update_child.c \
-	src/update_client.c
+version_m := $(basename $(version))
+version_M := $(basename $(version_m))
+version_l := $(basename $(version_M))
+CPPFLAGS_ALL := $(CPPFLAGS_AUTO) $(CPPFLAGS)
+CFLAGS_ALL := $(CFLAGS_AUTO) $(CFLAGS)
+ifeq ($(strip $(STATIC_LIBS_ARE_PIC)),)
+CFLAGS_SHARED := -fPIC
+else
+CFLAGS_SHARED :=
+endif
+LDFLAGS_ALL := $(LDFLAGS_AUTO) $(LDFLAGS)
+REALCC = $(CROSS_COMPILE)$(CC)
+AR := $(CROSS_COMPILE)ar
+RANLIB := $(CROSS_COMPILE)ranlib
+STRIP := $(CROSS_COMPILE)strip
+INSTALL := ./tools/install.sh
 
-OBJS := ${SRCS:c=o}
+ALL_BINS := $(LIBEXEC_TARGETS) $(BIN_TARGETS)
+ALL_LIBS := $(SHARED_LIBS) $(STATIC_LIBS) $(INTERNAL_LIBS)
+ALL_INCLUDES := $(wildcard src/include/$(package)/*.h)
 
-TARGET = sockexec
-
-all: $(TARGET) sockexec.client
-
-install: $(TARGET)
-	install -s -D -m 0755 bin/$(TARGET) $(DESTDIR)$(BINDIR)/$(TARGET)
-
-$(TARGET): bin/$(TARGET)
-
-sockexec.client: bin/sockexec.client
-
-bin/$(TARGET): $(OBJS)
-	mkdir -p bin
-	$(CC) -o bin/$(TARGET) $(OBJS) $(LDFLAGS)
-
-bin/sockexec.client: src/client.c
-	mkdir -p bin
-	$(CC) -o $@ $(CFLAGS) $< $(LDFLAGS)
-
-%.o: %.c $(HEADERS)
-	$(CC) $(CFLAGS) -c -o $@ $<
+all: $(ALL_LIBS) $(ALL_BINS) $(ALL_INCLUDES)
 
 clean:
-	rm -f bin/$(TARGET) bin/sockexec.client
-	rm -f $(OBJS)
+	@exec rm -f $(ALL_LIBS) $(ALL_BINS) $(wildcard src/*/*.o src/*/*.lo) $(EXTRA_TARGETS)
 
-test: $(TARGET)
+distclean: clean
+	@exec rm -f config.mak src/include/$(package)/config.h
+
+tgz: distclean
+	@. package/info && \
+	rm -rf /tmp/$$package-$$version && \
+	cp -a . /tmp/$$package-$$version && \
+	cd /tmp && \
+	tar -zpcv --owner=0 --group=0 --numeric-owner --exclude=.git* -f /tmp/$$package-$$version.tar.gz $$package-$$version && \
+	exec rm -rf /tmp/$$package-$$version
+
+strip: $(ALL_LIBS) $(ALL_BINS)
+ifneq ($(strip $(STATIC_LIBS)),)
+	exec $(STRIP) -x -R .note -R .comment -R .note.GNU-stack $(STATIC_LIBS)
+endif
+ifneq ($(strip $(ALL_BINS)$(SHARED_LIBS)),)
+	exec $(STRIP) -R .note -R .comment -R .note.GNU-stack $(ALL_BINS) $(SHARED_LIBS)
+endif
+
+install: install-bin
+install-bin: $(BIN_TARGETS:%=$(DESTDIR)$(bindir)/%)
+install-lib: $(STATIC_LIBS:lib%.a.xyzzy=$(DESTDIR)$(libdir)/lib%.a)
+
+ifneq ($(exthome),)
+
+$(DESTDIR)$(exthome): $(DESTDIR)$(home)
+	exec $(INSTALL) -l $(notdir $(home)) $(DESTDIR)$(exthome)
+
+update: $(DESTDIR)$(exthome)
+
+global-links: $(DESTDIR)$(exthome) $(SHARED_LIBS:lib%.so.xyzzy=$(DESTDIR)$(sproot)/library.so/lib%.so.$(version_M)) $(BIN_TARGETS:%=$(DESTDIR)$(sproot)/command/%)
+
+$(DESTDIR)$(sproot)/command/%: $(DESTDIR)$(home)/command/%
+	exec $(INSTALL) -D -l ..$(subst $(sproot),,$(exthome))/command/$(<F) $@
+
+$(DESTDIR)$(sproot)/library.so/lib%.so.$(version_M): $(DESTDIR)$(dynlibdir)/lib%.so.$(version_M)
+	exec $(INSTALL) -D -l ..$(subst $(sproot),,$(exthome))/library.so/$(<F) $@
+
+.PHONY: update global-links
+
+endif
+
+$(DESTDIR)$(datadir)/%: src/etc/%
+	exec $(INSTALL) -D -m 644 $< $@
+
+$(DESTDIR)$(dynlibdir)/lib%.so: lib%.so.xyzzy
+	$(INSTALL) -D -m 755 $< $@.$(version) && \
+	$(INSTALL) -l $(@F).$(version) $@.$(version_m) && \
+	$(INSTALL) -l $(@F).$(version_m) $@.$(version_M) && \
+	exec $(INSTALL) -l $(@F).$(version_M) $@
+
+$(DESTDIR)$(libexecdir)/% $(DESTDIR)$(bindir)/%: % package/modes
+	exec $(INSTALL) -D -m 600 $< $@
+	grep -- ^$(@F) < package/modes | { read name mode owner && \
+	if [ x$$owner != x ] ; then chown -- $$owner $@ ; fi && \
+	chmod $$mode $@ ; }
+
+$(DESTDIR)$(libdir)/lib%.a: lib%.a.xyzzy
+	exec $(INSTALL) -D -m 644 $< $@
+
+$(DESTDIR)$(includedir)/$(package)/%.h: src/include/$(package)/%.h
+	exec $(INSTALL) -D -m 644 $< $@
+
+%.o: %.c
+	exec $(REALCC) $(CPPFLAGS_ALL) $(CFLAGS_ALL) -c -o $@ $<
+
+%.lo: %.c
+	exec $(REALCC) $(CPPFLAGS_ALL) $(CFLAGS_ALL) $(CFLAGS_SHARED) -c -o $@ $<
+
+$(ALL_BINS):
+	exec $(REALCC) -o $@ $(CFLAGS_ALL) $(LDFLAGS_ALL) $(LDFLAGS_NOSHARED) $^ $(EXTRA_LIBS) $(LDLIBS)
+
+lib%.a.xyzzy:
+	exec $(AR) rc $@ $^
+	exec $(RANLIB) $@
+
+lib%.so.xyzzy:
+	exec $(REALCC) -o $@ $(CFLAGS_ALL) $(CFLAGS_SHARED) $(LDFLAGS_ALL) $(LDFLAGS_SHARED) -Wl,-soname,$(patsubst lib%.so.xyzzy,lib%.so.$(version_M),$@) $^ $(EXTRA_LIBS) $(LDLIBS)
+
+.PHONY: it all clean distclean tgz strip install install-dynlib install-bin install-lib install-include install-data
+
+.DELETE_ON_ERROR:

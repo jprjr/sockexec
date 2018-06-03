@@ -107,6 +107,7 @@ fi
 if [[ "$TRAVIS_OS_NAME" == "osx" ]] ; then
     (
     cd aux
+    mkdir -p "gcc-x86_64-apple-darwin/bin"
     skadir="$(pwd)/skalibs-x86_64-apple-darwin"
     wget "https://skarnet.org/software/skalibs/skalibs-${versions__skalibs}.tar.gz"
     tar xf "skalibs-${versions__skalibs}.tar.gz"
@@ -120,12 +121,8 @@ if [[ "$TRAVIS_OS_NAME" == "osx" ]] ; then
           --enable-iopause-select
         ${AUXDIR}/bin/make
         ${AUXDIR}/bin/make DESTDIR="${skadir}" install
-
         )
     )
-    mkdir -p aux/gcc-x86_64-apple-darwin/bin
-    ln -s $(which gcc) aux/gcc-x86_64-apple-darwin/bin/x86_64-apple-darwin-gcc
-    ln -s $(which strip) aux/gcc-x86_64-apple-darwin/bin/x86_64-apple-darwin-strip
 fi
 
 
@@ -139,25 +136,35 @@ for target_key in "${target_list[@]}"; do
     targetshort="${!targetshort}"
     staticflags="staticflags__${target_key}"
     staticflags="${!staticflags}"
+    static_libc=
+
+    if [[ "$TRAVIS_OS_NAME" == "linux" ]] ; then
+      static_libc="--enable-static-libc"
+    fi
 
     if [[ -d "aux/gcc-${target}" ]] ; then
-        ${AUXDIR}/bin/make clean
+        ${AUXDIR}/bin/make distclean || true
         rm -rf dist/${target}
         rm -f dist/sockexec-${target}.tar.gz
         mkdir -p dist/${target}/bin
         mkdir -p dist/${target}/share/doc/sockexec
         mkdir -p dist/${target}/src/sockexec
-        ${AUXDIR}/bin/make \
-          CC="aux/gcc-${target}/bin/${target}-gcc" \
-          LD="aux/gcc-${target}/bin/${target}-gcc" \
-          CFLAGS="${staticflags} -Iaux/skalibs-${target}/usr/include -Wall -Wextra -Werror -O3" \
-          LDFLAGS="${staticflags} -Laux/skalibs-${target}/usr/lib -lskarnet"
-        ${AUXDIR}/gcc-${target}/bin/${target}-strip ./bin/sockexec
-        ${AUXDIR}/gcc-${target}/bin/${target}-strip ./bin/sockexec.client
-        cp -a bin/sockexec dist/${target}/bin/sockexec
-        cp -a bin/sockexec.client dist/${target}/bin/sockexec.client
+        CC="${AUXDIR}/gcc-${target}/bin/${target}-gcc" \
+        CFLAGS="-g0 -Os" \
+        LDFLAGS="-s" \
+	PATH="${AUXDIR}/bin:${AUXDIR}/gcc-${target}/bin:$PATH" ./configure \
+          --with-include="${AUXDIR}/skalibs-${target}/usr/include" \
+          --with-lib="${AUXDIR}/skalibs-${target}/usr/lib" \
+          --with-sysdeps="${AUXDIR}/skalibs-${target}/usr/lib/skalibs/sysdeps/" \
+          --enable-allstatic \
+          $static_libc \
+          --enable-all-pic
+	PATH="${AUXDIR}/bin:${AUXDIR}/gcc-${target}/bin:$PATH" make
+        
+        cp sockexec dist/${target}/bin/sockexec
+        cp sockexec.client dist/${target}/bin/sockexec.client
 
-        ${AUXDIR}/bin/make clean
+        ${AUXDIR}/bin/make distclean
 
         cp -a LICENSE dist/${target}/share/doc/sockexec/
         cp -a LICENSE.skalibs dist/${target}/share/doc/sockexec/
@@ -169,7 +176,6 @@ for target_key in "${target_list[@]}"; do
         cp -a LICENSE* dist/${target}/src/sockexec/
         cp -a Makefile dist/${target}/src/sockexec/
         cp -a README.md dist/${target}/src/sockexec/
-        cp -a config.mak.example dist/${target}/src/sockexec/
         cp -a examples dist/${target}/src/sockexec/
         cp -a src dist/${target}/src/sockexec/
 
