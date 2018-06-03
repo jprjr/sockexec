@@ -18,11 +18,10 @@
 #include <skalibs/sig.h>
 #include <skalibs/lolstdio.h>
 #include <skalibs/alloc.h>
+#include <skalibs/posixplz.h>
 
 #define BUF_SIZE 4096
 
-
-extern char **environ;
 
 enum CHILD_OUTPUT_TYPE {
     CHILD_UNKNOWN,
