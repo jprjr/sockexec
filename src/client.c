@@ -111,10 +111,10 @@ int main(int argc, char const *const *argv) {
             }
             else {
                 if(data == 0) {
-                    write(1,sa.s,sa.len);
+                    fd_write(1,sa.s,sa.len);
                 }
                 else if(data == 1) {
-                    write(2,sa.s,sa.len);
+                    fd_write(2,sa.s,sa.len);
                 }
                 else if (data == 2) {
                     stralloc_0(&sa);
