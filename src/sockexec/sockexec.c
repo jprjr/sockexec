@@ -1,7 +1,7 @@
 #include "common.h"
 
-#define USAGE "sockexec [-v] [-d] [-q queue_size] [-m max_connections] [-t timeout] [-k kill_timeout] /path/to/socket"
-#define VERSION "3.0.0"
+#define USAGE "sockexec [-v] [-d] [-q queue_size] [-M mode] [-m max_connections] [-t timeout] [-k kill_timeout] /path/to/socket"
+#define VERSION "3.1.0"
 #define dieusage() strerr_dieusage(100, USAGE)
 #define dienomem()    strerr_diefu1sys(111, "stralloc_catb")
 #define dienosocket() strerr_diefu1sys(111, "ipc_stream_nb")
@@ -61,6 +61,8 @@ int main(int argc, char const *const *argv) {
     static const int n1 = -1;
     tain_t _now = tain_zero;
     tain_t _deadline = tain_zero;
+    unsigned int perms = 0660;
+    mode_t m;
     deadline = 0;
     debug = 0;
 
@@ -70,7 +72,7 @@ int main(int argc, char const *const *argv) {
 
     PROG = "sockexec" ;
 
-    while( (opt = subgetopt_r(argc,argv,"vdk:m:t:q:",&l)) > 0 )
+    while( (opt = subgetopt_r(argc,argv,"vdk:m:t:q:M:",&l)) > 0 )
     {
         switch(opt)
         {
@@ -112,6 +114,11 @@ int main(int argc, char const *const *argv) {
                 unsigned int t;
                 if(!uint0_scan(l.arg,&t)) dieusage() ;
                 timeout = t;
+                break;
+            }
+            case 'M':
+            {
+                if(!uint0_oscan(l.arg,&perms)) dieusage() ;
                 break;
             }
             default: dieusage() ;
@@ -158,7 +165,9 @@ int main(int argc, char const *const *argv) {
     /* start listener */
     fds_tbl[1].fd = ipc_stream_nb();
     if(fds_tbl[1].fd < 0) dienosocket() ;
+    m = umask(~perms & 0777);
     if(ipc_bind(fds_tbl[1].fd,sockname) < 0) dienobind() ;
+    umask(m);
     if(ipc_listen(fds_tbl[1].fd,max_queue) < 0) dienolisten() ;
     /* end listener */
 

@@ -32,13 +32,18 @@ make install
 
 ## Usage
 
-`sockexec [-v] [-d] [-q max queue] [-m max connections] [-t timeout] [-k kill_timeout] /tmp/exec.sock`
+`sockexec [-v] [-d] [-q max queue] [-M mode] [-m max connections] [-t timeout] [-k kill_timeout] /tmp/exec.sock`
 
 This starts up `sockexec`, listening for connections at `/tmp/exec.sock`
 
 By default, `sockexec` accepts a maximum of 100 queued connections, 100
 active connections, and enforces a 60-second max connection time. This
 can be changed with the `-q`, `-m` and `-t` flags, respectively.
+
+The UNIX socket will be created with default permissions of `0660` - so
+processes with the same user or group and read/write to the socket, and
+nobody else. You can change this with the `-M` flag to specify permissions
+in octal format (ie, `0777`).
 
 Setting the max connection time to 0 allows processes to run indefinitely. When
 a client disconnects, `sockexec` will send a `TERM`, then wait up to

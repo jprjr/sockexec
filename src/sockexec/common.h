@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <skalibs/allreadwrite.h>
 #include <skalibs/webipc.h>
 #include <skalibs/strerr2.h>
