@@ -2,9 +2,9 @@
 set -e
 set -x
 
-MUSL_CROSS_MAKE_RELEASE=9
+MUSL_CROSS_MAKE_RELEASE=10
 MUSL_CROSS_MAKE_SRC="https://github.com/just-containers/musl-cross-make/releases/download/v${MUSL_CROSS_MAKE_RELEASE}"
-SKAWARE_VERSION=1.21.5
+SKAWARE_VERSION=1.21.6
 SKAWARE_SOURCE="https://github.com/just-containers/skaware/releases/download/v${SKAWARE_VERSION}"
 MAKE_VERSION=4.2
 AUXDIR=$(pwd)/aux
@@ -44,9 +44,9 @@ cd aux
 # download manifests
 rm -f manifest.txt musl-cross-manifest.txt skaware-manifest.txt
 
-wget -nv "${MUSL_CROSS_MAKE_SRC}/gcc-7.2.0-manifest.txt"
-cp -a gcc-7.2.0-manifest.txt musl-cross-manifest.txt
-rm -f gcc-7.2.0-manifest.txt
+wget -nv "${MUSL_CROSS_MAKE_SRC}/gcc-7.3.0-manifest.txt"
+cp -a gcc-7.3.0-manifest.txt musl-cross-manifest.txt
+rm -f gcc-7.3.0-manifest.txt
 
 wget -nv "${SKAWARE_SOURCE}/manifest.txt"
 cp -a manifest.txt skaware-manifest.txt
