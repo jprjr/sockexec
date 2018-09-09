@@ -2,9 +2,9 @@
 set -e
 set -x
 
-MUSL_CROSS_MAKE_RELEASE=10
+MUSL_CROSS_MAKE_RELEASE=11
 MUSL_CROSS_MAKE_SRC="https://github.com/just-containers/musl-cross-make/releases/download/v${MUSL_CROSS_MAKE_RELEASE}"
-SKAWARE_VERSION=1.21.6
+SKAWARE_VERSION=1.21.7
 SKAWARE_SOURCE="https://github.com/just-containers/skaware/releases/download/v${SKAWARE_VERSION}"
 MAKE_VERSION=4.2
 AUXDIR=$(pwd)/aux
