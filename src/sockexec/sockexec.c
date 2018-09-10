@@ -1,3 +1,4 @@
+#include <sys/resource.h>
 #include "common.h"
 
 #define USAGE "sockexec [-v] [-d] [-q queue_size] [-M mode] [-m max_connections] [-t timeout] [-k kill_timeout] /path/to/socket"
@@ -65,12 +66,17 @@ int main(int argc, char const *const *argv) {
     mode_t m;
     deadline = 0;
     debug = 0;
+    struct rlimit rlp;
+    char max_conns_fmt[UINT64_FMT];
+    char req_conns_fmt[UINT64_FMT];
 
     now = &_now;
 
     subgetopt_t l = SUBGETOPT_ZERO ;
 
     PROG = "sockexec" ;
+
+    if(getrlimit(RLIMIT_NOFILE,&rlp)) strerr_die1x(111,"unable to check resource limits");
 
     while( (opt = subgetopt_r(argc,argv,"vdk:m:t:q:M:",&l)) > 0 )
     {
@@ -129,6 +135,13 @@ int main(int argc, char const *const *argv) {
     if(argc == 0) dieusage() ;
 
     max_fds = 5 + (4 * max_conns);
+    if(max_fds > rlp.rlim_cur) {
+        req_conns_fmt[uint64_fmt(req_conns_fmt,max_conns)] = 0;
+        max_conns = (rlp.rlim_cur - 5) / 4;
+        max_fds = rlp.rlim_cur;
+        max_conns_fmt[uint64_fmt(max_conns_fmt,max_conns)] = 0;
+        strerr_warn5x("WARNING: Max connections set to ",req_conns_fmt ," but only able to support ",max_conns_fmt , " - increase the number of file handles to handle more connections");
+    }
 
     /* setup connection_t/iopause_fd tables */
     if(fds_tbl_ready(max_fds) <= 0)    strerr_diefu2sys(111,"genalloc_ready","fds_tbl");

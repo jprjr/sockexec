@@ -117,8 +117,7 @@ if [[ "$TRAVIS_OS_NAME" == "osx" ]] ; then
           --libdir=/usr/lib \
           --enable-static \
           --disable-shared \
-          --datadir=/etc \
-          --enable-iopause-select
+          --datadir=/etc
         ${AUXDIR}/bin/make
         ${AUXDIR}/bin/make DESTDIR="${skadir}" install
         )
